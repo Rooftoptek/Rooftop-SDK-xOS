@@ -1,0 +1,6 @@
+framework module Rooftop {
+  umbrella header "Rooftop.h"
+
+  export *
+  module * { export * }
+}
