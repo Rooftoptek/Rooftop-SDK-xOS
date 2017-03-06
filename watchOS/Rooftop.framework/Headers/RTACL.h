@@ -22,10 +22,10 @@ NS_ASSUME_NONNULL_BEGIN
  */
 
 typedef enum {
-    PublicRead      = 1 << 0,
-    PublicUpdate    = 1 << 1,
-    PublicDelete    = 1 << 2,
-} Permission;
+    RTACLAccessTypeRead      = 1 << 0,
+    RTACLAccessTypeUpdate    = 1 << 1,
+    RTACLAccessTypeDelete    = 1 << 2,
+} RTACLAccessType;
 
 
 @interface RTACL : NSObject <NSCopying, NSCoding>
@@ -52,8 +52,6 @@ typedef enum {
 #pragma mark - Controlling Public Access
 ///--------------------------------------
 
-@property (assign, nonatomic) Permission permissions;
-
 /**
  Controls whether the public is allowed to read this object.
  */
@@ -69,197 +67,337 @@ typedef enum {
  */
 @property (nonatomic, assign, getter=getPublicUpdateAccess) BOOL publicUpdateAccess;
 
-/**
- Controls whether the public is allowed to write this object.
- */
-@property (nonatomic, assign, getter=getPublicWriteAccess) BOOL publicWriteAccess;
+- (void)setPublicAccess:(RTACLAccessType)permissions;
 
 ///--------------------------------------
 #pragma mark - Controlling Access Per-User
 ///--------------------------------------
 
-
-- (void)setPermission:(Permission)permission;
-- (void)setPermission:(Permission)permission forUserId:(NSString *)userId;
-- (void)setPermission:(Permission)permission forRoleWithName:(NSString *)name;
-- (void)setPermission:(Permission)permission forRole:(RTRole *)role;
+/**
+ Gets the *explicit* permissions this object for the given user.
+ 
+ @param user The user for which to retrive access.
+ 
+ @return *explicit* permissions for the user.
+ */
+- (RTACLAccessType)getAccessForUser:(RTUser *)user;
 
 /**
- SET UPDATE ACCESS
+ Set the permissions on this object for a given user.
+ 
+ @param permissions given permissions on this object.
+ @param user The user to assign access to.
  */
-
-- (void)setPublicUpdateAccess:(BOOL)allowed;
-- (void)setUpdateAccess:(BOOL)allowed forUserId:(NSString *)userId;
-- (BOOL)getUpdateAccessForUserId:(NSString *)userId;
-- (BOOL)getUpdateAccessForRoleWithName:(NSString *)name;
-- (void)setUpdateAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
-- (BOOL)getUpdateAccessForRole:(RTRole *)role;
-- (void)setUpdateAccess:(BOOL)allowed forRole:(RTRole *)role;
-- (BOOL)getUpdateReadAccess;
-
-/**
- Set whether the given user id is allowed to read this object.
-
- @param allowed Whether the given user can write this object.
- @param userId The `RTObject.objectId` of the user to assign access.
- */
-- (void)setReadAccess:(BOOL)allowed forUserId:(NSString *)userId;
-
-/**
- Gets whether the given user id is *explicitly* allowed to read this object.
- Even if this returns `NO`, the user may still be able to access it if `publicReadAccess` returns `YES`
- or if the user belongs to a role that has access.
-
- @param userId The `RTObject.objectId` of the user for which to retrive access.
-
- @return `YES` if the user with this `objectId` has *explicit* read access, otherwise `NO`.
- */
-- (BOOL)getReadAccessForUserId:(NSString *)userId;
-
-/**
- Set whether the given user id is allowed to write this object.
-
- @param allowed Whether the given user can read this object.
- @param userId The `RTObject.objectId` of the user to assign access.
- */
-- (void)setWriteAccess:(BOOL)allowed forUserId:(NSString *)userId;
-
-/**
- Gets whether the given user id is *explicitly* allowed to write this object.
- Even if this returns NO, the user may still be able to write it if `publicWriteAccess` returns `YES`
- or if the user belongs to a role that has access.
-
- @param userId The `RTObject.objectId` of the user for which to retrive access.
-
- @return `YES` if the user with this `RTObject.objectId` has *explicit* write access, otherwise `NO`.
- */
-- (BOOL)getWriteAccessForUserId:(NSString *)userId;
-
-/**
- Set whether the given user is allowed to read this object.
-
- @param allowed Whether the given user can read this object.
- @param user The user to assign access.
- */
-- (void)setReadAccess:(BOOL)allowed forUser:(RTUser *)user;
+- (void)setAccess:(RTACLAccessType)permissions forUser:(RTUser *)user;
 
 /**
  Gets whether the given user is *explicitly* allowed to read this object.
- Even if this returns `NO`, the user may still be able to access it if `publicReadAccess` returns `YES`
+ Even if this returns NO, the user may still be able to read it if `publicReadAccess` returns `YES`
  or if the user belongs to a role that has access.
-
+ 
  @param user The user for which to retrive access.
-
+ 
  @return `YES` if the user has *explicit* read access, otherwise `NO`.
  */
 - (BOOL)getReadAccessForUser:(RTUser *)user;
 
 /**
- Set whether the given user is allowed to write this object.
-
- @param allowed Whether the given user can write this object.
- @param user The user to assign access.
+ Set whether the given user is allowed to read this object.
+ 
+ @param allowed Whether the given user can read this object.
+ @param user The user to assign access to.
  */
-- (void)setWriteAccess:(BOOL)allowed forUser:(RTUser *)user;
+- (void)setReadAccess:(BOOL)allowed forUser:(RTUser *)user;
 
 /**
- Gets whether the given user is *explicitly* allowed to write this object.
- Even if this returns `NO`, the user may still be able to write it if `publicWriteAccess` returns `YES`
+ Gets whether the given user is *explicitly* allowed to update this object.
+ Even if this returns NO, the user may still be able to update it if `publicUpdateAccess` returns `YES`
  or if the user belongs to a role that has access.
-
+ 
  @param user The user for which to retrive access.
-
- @return `YES` if the user has *explicit* write access, otherwise `NO`.
+ 
+ @return `YES` if the user has *explicit* update access, otherwise `NO`.
  */
-- (BOOL)getWriteAccessForUser:(RTUser *)user;
+- (BOOL)getUpdateAccessForUser:(RTUser *)user;
+
+/**
+ Set whether the given user is allowed to update this object.
+ 
+ @param allowed Whether the given user can update this object.
+ @param user The user to assign access to.
+ */
+- (void)setUpdateAccess:(BOOL)allowed forUser:(RTUser *)user;
+
+/**
+ Gets whether the given user is *explicitly* allowed to delete this object.
+ Even if this returns NO, the user may still be able to delete it if `publicDeleteAccess` returns `YES`
+ or if the user belongs to a role that has access.
+ 
+ @param user The user for which to retrive access.
+ 
+ @return `YES` if the user has *explicit* delete access, otherwise `NO`.
+ */
+- (BOOL)getDeleteAccessForUser:(RTUser *)user;
+
+/**
+ Set whether the given user is allowed to delete this object.
+ 
+ @param allowed Whether the given user can delete this object.
+ @param user The user to assign access to.
+ */
+- (void)setDeleteAccess:(BOOL)allowed forUser:(RTUser *)user;
+
+///-------------------------------------------------
+#pragma mark - Controlling Access Per-User by userId
+///-------------------------------------------------
+
+/**
+ Gets the *explicit* permissions this object for the user with the given user id.
+ 
+ @param userId The user if the user for which to retrive access.
+ 
+ @return *explicit* permissions for the user.
+ */
+- (RTACLAccessType)getAccessForUserId:(NSString *)userId;
+
+/**
+ Set the permissions on this object for a given user id.
+ 
+ @param permissions given permissions on this object.
+ @param userId The `RTObject.objectId` of the user to assign access.
+ */
+- (void)setAccess:(RTACLAccessType)permissions forUserId:(NSString *)userId;
+
+/**
+ Gets whether the given user id is *explicitly* allowed to read this object.
+ Even if this returns NO, the user may still be able to read it if `publicReadAccess` returns `YES`
+ or if the user belongs to a role that has access.
+ 
+ @param userId The `RTObject.objectId` of the user for which to retrive access.
+ 
+ @return `YES` if the user with this `RTObject.objectId` has *explicit* read access, otherwise `NO`.
+ */
+- (BOOL)getReadAccessForUserId:(NSString *)userId;
+
+/**
+ Set whether the given user id is allowed to read this object.
+ 
+ @param allowed Whether the given user can read this object.
+ @param userId The `RTObject.objectId` of the user to assign access.
+ */
+- (void)setReadAccess:(BOOL)allowed forUserId:(NSString *)userId;
+
+/**
+ Gets whether the given user id is *explicitly* allowed to update this object.
+ Even if this returns NO, the user may still be able to update it if `publicUpdateAccess` returns `YES`
+ or if the user belongs to a role that has access.
+ 
+ @param userId The `RTObject.objectId` of the user for which to retrive access.
+ 
+ @return `YES` if the user with this `RTObject.objectId` has *explicit* update access, otherwise `NO`.
+ */
+- (BOOL)getUpdateAccessForUserId:(NSString *)userId;
+
+/**
+ Set whether the given user id is allowed to update this object.
+ 
+ @param allowed Whether the given user can update this object.
+ @param userId The `RTObject.objectId` of the user to assign access.
+ */
+- (void)setUpdateAccess:(BOOL)allowed forUserId:(NSString *)userId;
+
+/**
+ Gets whether the given user id is *explicitly* allowed to delete this object.
+ Even if this returns NO, the user may still be able to delete it if `publicDeleteAccess` returns `YES`
+ or if the user belongs to a role that has access.
+ 
+ @param userId The `RTObject.objectId` of the user for which to retrive access.
+ 
+ @return `YES` if the user with this `RTObject.objectId` has *explicit* delete access, otherwise `NO`.
+ */
+- (BOOL)getDeleteAccessForUserId:(NSString *)userId;
+
+/**
+ Set whether the given user id is allowed to delete this object.
+ 
+ @param allowed Whether the given user can delete this object.
+ @param userId The `RTObject.objectId` of the user to assign access.
+ */
+- (void)setDeleteAccess:(BOOL)allowed forUserId:(NSString *)userId;
 
 ///--------------------------------------
 #pragma mark - Controlling Access Per-Role
 ///--------------------------------------
 
 /**
- Get whether users belonging to the role with the given name are allowed to read this object.
- Even if this returns `NO`, the role may still be able to read it if a parent role has read access.
-
- @param name The name of the role.
-
- @return `YES` if the role has read access, otherwise `NO`.
+ Get permissions for users belonging to the given role for that object.
+ 
+ The role must already be saved on the server and
+ it's data must have been fetched in order to use this method.
+ 
+ @param role The role.
+ 
+ @return permissions for the given role.
  */
-- (BOOL)getReadAccessForRoleWithName:(NSString *)name;
+- (RTACLAccessType)getAccessForRole:(RTRole *)role;
 
 /**
- Set whether users belonging to the role with the given name are allowed to read this object.
-
- @param allowed Whether the given role can read this object.
- @param name The name of the role.
+ Set the permissions on this object for a given role.
+ 
+ @param permissions given permissions on this object.
+ @param role The role to assign access to.
  */
-- (void)setReadAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
-
-/**
- Get whether users belonging to the role with the given name are allowed to write this object.
- Even if this returns `NO`, the role may still be able to write it if a parent role has write access.
-
- @param name The name of the role.
-
- @return `YES` if the role has read access, otherwise `NO`.
- */
-- (BOOL)getWriteAccessForRoleWithName:(NSString *)name;
-
-/**
- Set whether users belonging to the role with the given name are allowed to write this object.
-
- @param allowed Whether the given role can write this object.
- @param name The name of the role.
- */
-- (void)setWriteAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
+- (void)setAccess:(RTACLAccessType)permissions forRole:(RTRole *)role;
 
 /**
  Get whether users belonging to the given role are allowed to read this object.
- Even if this returns `NO`, the role may still be able to read it if a parent role has read access.
-
+ Even if this returns `NO`, the user may still be able to read if it belongs to a role with read access.
+ 
  The role must already be saved on the server and
  it's data must have been fetched in order to use this method.
-
+ 
  @param role The name of the role.
-
+ 
  @return `YES` if the role has read access, otherwise `NO`.
  */
 - (BOOL)getReadAccessForRole:(RTRole *)role;
 
 /**
- Set whether users belonging to the given role are allowed to read this object.
-
- The role must already be saved on the server and
- it's data must have been fetched in order to use this method.
-
- @param allowed Whether the given role can read this object.
- @param role The role to assign access.
+ Set whether the given role is allowed to read this object.
+ 
+ @param allowed Whether the given user can read this object.
+ @param role The role to assign access to.
  */
 - (void)setReadAccess:(BOOL)allowed forRole:(RTRole *)role;
 
 /**
- Get whether users belonging to the given role are allowed to write this object.
- Even if this returns `NO`, the role may still be able to write it if a parent role has write access.
-
+ Get whether users belonging to the given role are allowed to update this object.
+ Even if this returns `NO`, the user may still be able to update if it belongs to a role with update access.
+ 
  The role must already be saved on the server and
  it's data must have been fetched in order to use this method.
-
- @param role The name of the role.
-
- @return `YES` if the role has write access, otherwise `NO`.
+ 
+ @param role A Role
+ 
+ @return `YES` if the role has update access, otherwise `NO`.
  */
-- (BOOL)getWriteAccessForRole:(RTRole *)role;
+- (BOOL)getUpdateAccessForRole:(RTRole *)role;
 
 /**
- Set whether users belonging to the given role are allowed to write this object.
+ Set whether the given role is allowed to update this object.
+ 
+ @param allowed Whether the given user can update this object.
+ @param role The role to assign access to.
+ */
+- (void)setUpdateAccess:(BOOL)allowed forRole:(RTRole *)role;
 
+/**
+ Get whether users belonging to the given role are allowed to delete this object.
+ Even if this returns `NO`, the user may still be able to delete if it belongs to a role with delete access.
+ 
  The role must already be saved on the server and
  it's data must have been fetched in order to use this method.
-
- @param allowed Whether the given role can write this object.
- @param role The role to assign access.
+ 
+ @param role A role.
+ 
+ @return `YES` if the role has delete access, otherwise `NO`.
  */
-- (void)setWriteAccess:(BOOL)allowed forRole:(RTRole *)role;
+- (BOOL)getDeleteAccessForRole:(RTRole *)role;
+
+/**
+ Set whether the given role is allowed to delete this object.
+ 
+ @param allowed Whether the given user can delete this object.
+ @param role The role to assign access to.
+ */
+- (void)setDeleteAccess:(BOOL)allowed forRole:(RTRole *)role;
+
+///----------------------------------------------------
+#pragma mark - Controlling Access Per-Role by role name
+///----------------------------------------------------
+
+/**
+ Get permissions for users belonging to the role with the given name for that object.
+ 
+ The role must already be saved on the server and
+ it's data must have been fetched in order to use this method.
+ 
+ @param name The name of the role.
+ 
+ @return permissions for the role with the given name.
+ */
+- (RTACLAccessType)getAccessForRoleWithName:(NSString *)name;
+
+/**
+ Set the permissions on this object for a given role name.
+ 
+ @param permissions given permissions on this object.
+ @param name The RTRole name of the role to assign access.
+ */
+- (void)setAccess:(RTACLAccessType)permissions forRoleWithName:(NSString *)name;
+
+/**
+ Get whether users belonging to the role with the given role name are allowed to read this object.
+ Even if this returns `NO`, the user may still be able to read if it belongs to a role with read access.
+ 
+ The role must already be saved on the server and
+ it's data must have been fetched in order to use this method.
+ 
+ @param name The name of the role.
+ 
+ @return `YES` if the role has read access, otherwise `NO`.
+ */
+- (BOOL)getReadAccessForRoleWithName:(NSString *)name;
+
+/**
+ Set whether the role with the given name is allowed to read this object.
+ 
+ @param allowed Whether the given user can read this object.
+ @param name The RTRole name of the role to assign access.
+ */
+- (void)setReadAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
+
+/**
+ Get whether users belonging to the role with the given role name are allowed to update this object.
+ Even if this returns `NO`, the user may still be able to update if it belongs to a role with update access.
+ 
+ The role must already be saved on the server and
+ it's data must have been fetched in order to use this method.
+ 
+ @param name The name of the role.
+ 
+ @return `YES` if the role has update access, otherwise `NO`.
+ */
+- (BOOL)getUpdateAccessForRoleWithName:(NSString *)name;
+
+/**
+ Set whether the role with the given name is allowed to update this object.
+ 
+ @param allowed Whether the given user can update this object.
+ @param name The RTRole name of the role to assign access.
+ */
+- (void)setUpdateAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
+
+/**
+ Get whether users belonging to the role with the given role name are allowed to delete this object.
+ Even if this returns `NO`, the user may still be able to delete if it belongs to a role with delete access.
+ 
+ The role must already be saved on the server and
+ it's data must have been fetched in order to use this method.
+ 
+ @param name The name of the role.
+ 
+ @return `YES` if the role has delete access, otherwise `NO`.
+ */
+- (BOOL)getDeleteAccessForRoleWithName:(NSString *)name;
+
+/**
+ Set whether the role with the given name is allowed to delete this object.
+ 
+ @param allowed Whether the given user can delete this object.
+ @param name The RTRole name of the role to assign access.
+ */
+- (void)setDeleteAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
 
 ///--------------------------------------
 #pragma mark - Setting Access Defaults
