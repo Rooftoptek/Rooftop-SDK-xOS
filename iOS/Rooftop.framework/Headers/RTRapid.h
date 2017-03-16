@@ -32,6 +32,18 @@ NS_ASSUME_NONNULL_BEGIN
                           withParameters:(nullable NSDictionary *)parameters;
 
 /**
+ Calls the given cloud function *asynchronously* with the parameters provided.
+ 
+ @param function The function name to call.
+ @param parameters The parameters to send to the function.
+ 
+ @return The task, that encapsulates the work being done.
+ */
++ (BFTask<id> *)invokeInBackground:(NSString *)function
+                    withParameters:(nullable NSDictionary *)parameters
+                   waitForResponse:(BOOL)waitForResponse;
+
+/**
  Calls the given cloud function *asynchronously* with the parameters provided
  and executes the given block when it is done.
 
@@ -43,6 +55,20 @@ NS_ASSUME_NONNULL_BEGIN
 + (void)invokeInBackground:(NSString *)function
                   withParameters:(nullable NSDictionary *)parameters
                            block:(nullable RTIdResultBlock)block;
+
+/**
+ Calls the given cloud function *asynchronously* with the parameters provided
+ and executes the given block when it is done.
+ 
+ @param function The function name to call.
+ @param parameters The parameters to send to the function.
+ @param block The block to execute when the function call finished.
+ It should have the following argument signature: `^(id result, NSError *error)`.
+ */
++ (void)invokeInBackground:(NSString *)function
+            withParameters:(nullable NSDictionary *)parameters
+           waitForResponse:(BOOL)waitForResponse
+                     block:(nullable RTIdResultBlock)block;
 
 @end
 

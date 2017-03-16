@@ -12,117 +12,15 @@
 #import <Bolts/BFTask.h>
 
 #import <Rooftop/RTConstants.h>
+#import <Rooftop/RTACL.h>
 
 NS_ASSUME_NONNULL_BEGIN
 
 /**
- `RTFile` representes a file of binary data stored on the Rooftop servers.
+ `RTFile` representes a file of binary data stored in S3.
  This can be a image, video, or anything else that an application needs to reference in a non-relational way.
  */
 @interface RTFile : NSObject
-
-///--------------------------------------
-#pragma mark - Creating a RTFile
-///--------------------------------------
-
-- (instancetype)init NS_UNAVAILABLE;
-+ (instancetype)new NS_UNAVAILABLE;
-
-/**
- Creates a file with given data. A name will be assigned to it by the server.
-
- @param data The contents of the new `RTFile`.
-
- @return A new `RTFile`.
- */
-+ (nullable instancetype)fileWithData:(NSData *)data;
-
-/**
- Creates a file with given data and name.
-
- @param name The name of the new RTFile. The file name must begin with and
- alphanumeric character, and consist of alphanumeric characters, periods,
- spaces, underscores, or dashes.
- @param data The contents of the new `RTFile`.
-
- @return A new `RTFile` object.
- */
-+ (nullable instancetype)fileWithName:(nullable NSString *)name data:(NSData *)data;
-
-/**
- Creates a file with the contents of another file.
-
- @warning This method raises an exception if the file at path is not accessible
- or if there is not enough disk space left.
-
- @param name  The name of the new `RTFile`. The file name must begin with and alphanumeric character,
- and consist of alphanumeric characters, periods, spaces, underscores, or dashes.
- @param path  The path to the file that will be uploaded to Rooftop.
-
- @return A new `RTFile` instance.
- */
-+ (nullable instancetype)fileWithName:(nullable NSString *)name
-                       contentsAtPath:(NSString *)path RT_SWIFT_UNAVAILABLE;
-
-/**
- Creates a file with the contents of another file.
-
- @param name  The name of the new `RTFile`. The file name must begin with and alphanumeric character,
- and consist of alphanumeric characters, periods, spaces, underscores, or dashes.
- @param path  The path to the file that will be uploaded to Rooftop.
- @param error On input, a pointer to an error object.
- If an error occurs, this pointer is set to an actual error object containing the error information.
- You may specify `nil` for this parameter if you do not want the error information.
-
- @return A new `RTFile` instance or `nil` if the error occured.
- */
-+ (nullable instancetype)fileWithName:(nullable NSString *)name
-                       contentsAtPath:(NSString *)path
-                                error:(NSError **)error;
-
-/**
- Creates a file with given data, name and content type.
-
- @warning This method raises an exception if the data supplied is not accessible or could not be saved.
-
- @param name        The name of the new `RTFile`. The file name must begin with and alphanumeric character,
- and consist of alphanumeric characters, periods, spaces, underscores, or dashes.
- @param data        The contents of the new `RTFile`.
- @param contentType Represents MIME type of the data.
-
- @return A new `RTFile` instance.
- */
-+ (nullable instancetype)fileWithName:(nullable NSString *)name
-                                 data:(NSData *)data
-                          contentType:(nullable NSString *)contentType RT_SWIFT_UNAVAILABLE;
-
-/**
- Creates a file with given data, name and content type.
-
- @param name        The name of the new `RTFile`. The file name must begin with and alphanumeric character,
- and consist of alphanumeric characters, periods, spaces, underscores, or dashes.
- @param data        The contents of the new `RTFile`.
- @param contentType Represents MIME type of the data.
- @param error On input, a pointer to an error object.
- If an error occurs, this pointer is set to an actual error object containing the error information.
- You may specify `nil` for this parameter if you do not want the error information.
-
- @return A new `RTFile` instance or `nil` if the error occured.
- */
-+ (nullable instancetype)fileWithName:(nullable NSString *)name
-                                 data:(NSData *)data
-                          contentType:(nullable NSString *)contentType
-                                error:(NSError **)error;
-
-/**
- Creates a file with given data and content type.
-
- @param data The contents of the new `RTFile`.
- @param contentType Represents MIME type of the data.
-
- @return A new `RTFile` object.
- */
-+ (instancetype)fileWithData:(NSData *)data contentType:(nullable NSString *)contentType;
 
 ///--------------------------------------
 #pragma mark - File Properties
@@ -131,32 +29,67 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  The name of the file.
 
- Before the file is saved, this is the filename given by
- the user. After the file is saved, that name gets prefixed with a unique
- identifier.
+ The filename. The name cannot be changed once data has been assigned to the file
+ or if the file has already been uploaded (it should be set first for new files)
  */
-@property (nonatomic, copy, readonly) NSString *name;
+@property (nonatomic, copy) NSString *name;
 
 /**
- The url of the file.
+ The mime type of the file.
+ 
+ After the file is saved, the mime type cannot be changed.
+ */
+@property (nonatomic, copy) NSString *mimeType;
+
+/**
+ The url of the file. Available only after the file is saved.
  */
 @property (nullable, nonatomic, copy, readonly) NSString *url;
 
 /**
- Whether the file has been uploaded for the first time.
+ True if the file needs saving (data or ACL changed)
  */
 @property (nonatomic, assign, readonly, getter=isDirty) BOOL dirty;
 
+/**
+ True if the data is available locally, false if it needs to be downloaded.
+ */
+@property (nonatomic, assign, readonly, getter=isDataAvailable) BOOL dataAvailable;
+
+/**
+ Privacy of the file.
+ 
+ When set to true, the file will be saved in the private S3 folder.
+ It has no effect on saved files
+ */
+- (void)setPrivate:(BOOL)private;
+
+/**
+ ACL of the file.
+ 
+ Controls who can delete or overwrite the file.
+ It has no effect on saved files
+ */
+- (void)setACL:(RTACL *)ACL;
+
 ///--------------------------------------
-#pragma mark - File State Methods
+#pragma mark - File content
 ///--------------------------------------
 
-- (void)setIsFilePrivate:(BOOL)isPrivate;
-- (BOOL)getIsFilePrivateState;
+/**
+ Set the data to be saved from a data object.
+ */
+- (void)setContentFromData:(NSData *)data;
+
+/**
+ Set the data to be saved from a file at given path.
+ */
+- (void)setContentFromPath:(NSString *)contentPath;
 
 ///--------------------------------------
 #pragma mark - Storing Data with Rooftop
 ///--------------------------------------
+
 
 /**
  Saves the file *asynchronously*.
@@ -194,13 +127,8 @@ NS_ASSUME_NONNULL_BEGIN
                     progressBlock:(nullable RTProgressBlock)progressBlock;
 
 ///--------------------------------------
-#pragma mark - Getting Data from Rooftop
+#pragma mark - Getting File Data
 ///--------------------------------------
-
-/**
- Whether the data is available in memory or needs to be downloaded.
- */
-@property (nonatomic, assign, readonly, getter=isDataAvailable) BOOL dataAvailable;
 
 /**
  This method is like `-getData` but it fetches asynchronously to avoid blocking the current thread.
@@ -363,6 +291,24 @@ NS_ASSUME_NONNULL_BEGIN
  */
 - (void)getFilePathInBackgroundWithBlock:(nullable RTFilePathResultBlock)block
                            progressBlock:(nullable RTProgressBlock)progressBlock;
+
+///--------------------------------------
+#pragma mark - Deleting a File
+///--------------------------------------
+
+/**
+ Deletes the file *asynchronously*.
+ 
+ @return The task, that encapsulates the work being done.
+ */
+- (BFTask *)deleteInBackground;
+
+/**
+ Deletes the file *asynchronously* and executes the given block.
+ 
+ @param block The block should have the following argument signature: `^(BOOL succeeded, NSError *error)`.
+ */
+- (void)deleteInBackgroundWithBlock:(nullable RTBooleanResultBlock)block;
 
 ///--------------------------------------
 #pragma mark - Interrupting a Transfer

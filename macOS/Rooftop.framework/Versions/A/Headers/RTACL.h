@@ -400,6 +400,12 @@ typedef enum {
 - (void)setDeleteAccess:(BOOL)allowed forRoleWithName:(NSString *)name;
 
 ///--------------------------------------
+#pragma mark - Obfuscating credentials
+///--------------------------------------
+
+- (RTACL *)asObfuscatedACL;
+
+///--------------------------------------
 #pragma mark - Setting Access Defaults
 ///--------------------------------------
 
