@@ -44,7 +44,7 @@ NS_ASSUME_NONNULL_BEGIN
 /**
  The url of the file. Available only after the file is saved.
  */
-@property (nullable, nonatomic, copy, readonly) NSString *url;
+@property (nullable, nonatomic, copy, readonly) NSURL *url;
 
 /**
  True if the file needs saving (data or ACL changed)
