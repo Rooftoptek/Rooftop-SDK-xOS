@@ -17,9 +17,8 @@ Each `RTObject` has a class name that you can use to distinguish different sorts
 ## Saving Objects
 
 Let's say you want to save the `GameScore` described above to the Rooftop Cloud. The interface is similar to a `NSMutableDictionary`, plus the `saveInBackground` method:
-
-<pre><code class="objectivec">
-RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
 gameScore[@"score"] = @1337;
 gameScore[@"playerName"] = @"Sean Plott";
 gameScore[@"cheatMode"] = @NO;
@@ -32,26 +31,25 @@ gameScore[@"cheatMode"] = @NO;
 }];
 </code></pre>
 
-<pre><code class="swift">
-var gameScore = RTObject(className:"GameScore")
+### Swift
+<pre><code class="swift">let gameScore = RTObject(className:"GameScore")
 gameScore["score"] = 1337
 gameScore["playerName"] = "Sean Plott"
 gameScore["cheatMode"] = false
-gameScore.saveInBackgroundWithBlock {
-  (success: Bool, error: NSError?) -> Void in
-  if (success) {
-    // The object has been saved.
-  } else {
-    // There was a problem, check error.description
-  }
+gameScore.saveInBackground { (success, error) in
+	if success {
+		// The object has been saved.
+	} else {
+		// There was a problem, check error.description
+	}
 }
 </code></pre>
 
 After this code runs, you will probably be wondering if anything really happened. To make sure the data was saved, you can look at the Data Browser in your app on Rooftop. You should see something like this:
 
 ```js
-objectId: "xWMyZ4YEGZ", score: 1337, playerName: "Sean Plott", cheatMode: false,
-createdAt:"2011-06-10T18:33:42Z", updatedAt:"2011-06-10T18:33:42Z"
+objectId: "76ad7fb1-1e5f-4969-922c-hfk57ef6b7dc", score: 1337, playerName: "Sean Plott", cheatMode: false,
+createdAt:"2017-03-20T18:33:42Z", updatedAt:"2017-03-20T18:33:42Z"
 ```
 
 There are two things to note here. You didn't have to configure or set up a new Class called `GameScore` before running this code. Your Rooftop app lazily creates this Class for you when it first encounters it.
@@ -63,95 +61,110 @@ Note: You can use the `saveInBackgroundWithBlock` method to provide additional l
 ## Retrieving Objects
 
 Saving data to the cloud is fun, but it's even more fun to get that data out again. You can get all data from query class using:
-
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];;
-[query findObjectsInBackgroundWithBlock:^(NSArray *gameScore, NSError *error) {
-    // Do something with the returned RTObject in the gameScore variable.
-    NSLog(@"%@", gameScore);
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+[query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+    // Do something with the returned array of RTObject in the objects variable.
+    NSLog(@"%@", objects);
 }];
 </code></pre>
 
+### Swift
+<pre><code class="swift">let query = RTQuery(className: "GameScore")
+query.findObjectsInBackground { (objects, error) in
+	// Do something with the returned array of RTObject in the objects variable.
+	print(objects!)
+}</code></pre>
+
 If you have the `objectId`, you can retrieve the whole `RTObject` using a `RTQuery`.  This is an asynchronous method, with variations for using either blocks or callback methods:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
-[query getObjectInBackgroundWithId:@"xWMyZ4YEGZ" block:^(RTObject *gameScore, NSError *error) {
+### Objective - C
+
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+[query getObjectInBackgroundWithId:@"76ad7fb1-1e5f-4969-922c-hfk57ef6b7dc" block:^(RTObject *object, NSError *error) {
     // Do something with the returned RTObject in the gameScore variable.
-    NSLog(@"%@", gameScore);
+    NSLog(@"%@", object);
 }];
 // The InBackground methods are asynchronous, so any code after this will run
 // immediately.  Any code that depends on the query result should be moved
 // inside the completion block above.
 </code></pre>
 
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
-query.getObjectInBackgroundWithId("xWMyZEGZ") {
-  (gameScore: RTObject?, error: NSError?) -> Void in
-  if error == nil && gameScore != nil {
-    print(gameScore)
-  } else {
-    print(error)
-  }
+### Swift
+
+<pre><code class="swift">let query = RTQuery(className: "GameScore")
+query.getObjectInBackground(withId: "76ad7fb1-1e5f-4969-922c-hfk57ef6b7dc") { (object, error) in
+	// Do something with the returned RTObject in the gameScore variable.
+	print(object)
 }
+// The InBackground methods are asynchronous, so any code after this will run
+// immediately.  Any code that depends on the query result should be moved
+// inside the completion block above.
 </code></pre>
 
 To get the values out of the `RTObject`, you can use either the `objectForKey:` method or the `[]` subscripting operator:
 
-<pre><code class="objectivec">
-int score = [[gameScore objectForKey:@"score"] intValue];
-NSString *playerName = gameScore[@"playerName"];
-BOOL cheatMode = [gameScore[@"cheatMode"] boolValue];
+### Objective - C
+
+<pre><code class="objectivec">int score = [[object objectForKey:@"score"] intValue];
+NSString *playerName = object[@"playerName"];
+BOOL cheatMode = [object[@"cheatMode"] boolValue];
 </code></pre>
 
-<pre><code class="swift">
-let score = gameScore["score"] as Int
-let playerName = gameScore["playerName"] as String
-let cheatMode = gameScore["cheatMode"] as Bool
+### Swift
+
+<pre><code class="swift">let score = object?["score"] as! Int
+let playerName = object?["playerName"] as! String
+let cheatMode = object?["cheatMode"] as! Bool
 </code></pre>
 
 The three special values are provided as properties:
 
-<pre><code class="objectivec">
-NSString *objectId = gameScore.objectId;
-NSDate *updatedAt = gameScore.updatedAt;
-NSDate *createdAt = gameScore.createdAt;
+### Objective - C
+
+<pre><code class="objectivec">NSString *objectId = gameScore.objectId;
+NSDate *updatedAt = object;
+NSDate *createdAt = object;
 </code></pre>
 
-<pre><code class="swift">
-let objectId = gameScore.objectId
-let updatedAt = gameScore.updatedAt
-let createdAt = gameScore.createdAt
+### Swift
+
+<pre><code class="swift">let objectId = gameScore.objectId
+let updatedAt = object
+let createdAt = object
 </code></pre>
 
 If you need to refresh an object you already have with the latest data that
     is in the Rooftop Cloud, you can call the `fetch` method like so:
 
-<pre><code class="objectivec">
-[myObject fetch];
+<pre><code class="objectivec">[object fetch];
 </code></pre>
 
-<pre><code class="swift">
-myObject.fetch()
+<pre><code class="swift">do {
+	try object?.fetch()
+} catch {
+	// Handle error
+}
 </code></pre>
 
-Note: In a similar way to the `save` methods, you can use the `fetchInBackgroundWithBlock` or `fetchInBackgroundWithTarget:selector:` methods to provide additional logic which will run after fetching the object.
+**Note:** In a similar way to the `save` methods, you can use the `fetchInBackgroundWithBlock` or `fetchInBackgroundWithTarget:selector:` methods to provide additional logic which will run after fetching the object.
+
+<!--END-->  
 
 ## The Local Datastore
 
-Rooftop also lets you store objects in a [local datastore](#local-datastore) on the device itself. You can use this for data that doesn't need to be saved to the cloud, but this is especially useful for temporarily storing data so that it can be synced later. To enable the datastore, add `libsqlite3.dylib` and call `[Rooftop enableLocalDatastore]` in your `AppDelegate` `application:didFinishLaunchWithOptions:` before calling `[Rooftop setApplicationId:clientKey:]`. Once the local datastore is enabled, you can store an object by pinning it.
+Rooftop also lets you store objects in a local datastore on the device itself. You can use this for data that doesn't need to be saved to the cloud, but this is especially useful for temporarily storing data so that it can be synced later. To enable the datastore, add `libsqlite3.dylib` and call`[Rooftop enableLocalDatastore]` for Objective - C or `Rooftop.enableLocalDatastore()` if you are using Swift in your `AppDelegate` `application:didFinishLaunchWithOptions:` before calling `setApplicationId:clientKey:` method for `Rooftop`. Once the local datastore is enabled, you can store an object by pinning it.
 
-<pre><code class="objectivec">
-RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
 gameScore[@"score"] = 1337;
 gameScore[@"playerName"] = @"Sean Plott";
 gameScore[@"cheatMode"] = @NO;
 [gameScore pinInBackground];
 </code></pre>
 
-<pre><code class="swift">
-let gameScore = RTObject(className:"GameScore")
+### Swift
+<pre><code class="swift">let gameScore = RTObject(className:"GameScore")
 gameScore["score"] = 1337
 gameScore["playerName"] = "Sean Plott"
 gameScore["cheatMode"] = false
@@ -164,59 +177,54 @@ As with saving, this recursively stores every object and file that `gameScore` p
 
 Storing an object is only useful if you can get it back out. To get the data for a specific object, you can use a `RTQuery` just like you would while on the network, but using the `fromLocalDatastore` method to tell it where to get the data.
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 [query fromLocalDatastore];
-[[query getObjectInBackgroundWithId:@"xWMyZ4YEGZ"] continueWithBlock:^id(BFTask *task) {
+[[query getObjectInBackgroundWithId:@"76ad7fb1-1e5f-4969-922c-hfk57ef6b7dc"] continueWithBlock:^id(BFTask *task) {
   if (task.error) {
     // something went wrong;
     return task;
   }
-
   // task.result will be your game score
   return task;
 }];
 </code></pre>
 
-<pre><code class="swift">
-let query = RTQuery(className:"GameScore")
+### Swift
+<pre><code class="swift">let query = RTQuery(className:"GameScore")
 query.fromLocalDatastore()
-query.getObjectInBackgroundWithId("xWMyZ4YEGZ").continueWithBlock({
-  (task: BFTask!) -> AnyObject! in
+query.getObjectInBackgroundWithId("76ad7fb1-1e5f-4969-922c-hfk57ef6b7dc") { (task) in
   if task.error != nil {
       // There was an error.
       return task
   }
-
   // task.result will be your game score
   return task
-})
+}
 </code></pre>
 
 If you already have an instance of the object, you can instead use the `fetchFromLocalDatastoreInBackground` method.
 
-<pre><code class="objectivec">
-RTObject *object = [RTObject objectWithoutDataWithClassName:@"GameScore" objectId:@"xWMyZ4YEGZ"];
+### Objective - C
+<pre><code class="objectivec">RTObject *object = [RTObject objectWithoutDataWithClassName:@"GameScore" objectId:@"xWMyZ4YEGZ"];
 [[object fetchFromLocalDatastoreInBackground] continueWithBlock:^id(BFTask *task) {
   if (task.error) {
     // something went wrong
     return task;
   }
-
   // task.result will be your game score
   return task;
 }];
 </code></pre>
 
-<pre><code class="swift">
-let object = RTObject(withoutDataWithClassName:"GameScore", objectId:"xWMyZ4YEGZ")
+### Swift
+<pre><code class="swift">let object = RTObject(withoutDataWithClassName:"GameScore", objectId:"xWMyZ4YEGZ")
 object.fetchFromLocalDatastoreInBackground().continueWithBlock({
   (task: BFTask!) -> AnyObject! in
   if task.error != nil {
       // There was an error.
       return task
   }
-
   // task.result will be your game score
   return task
 })
@@ -295,8 +303,8 @@ The above example contains a common use case. The "score" field is a counter tha
 
 To help with storing counter-type data, Rooftop provides methods that atomically increment (or decrement) any number field. So, the same update can be rewritten as:
 
-<pre><code class="objectivec">
-[gameScore incrementKey:@"score"];
+### Objective - C
+<pre><code class="objectivec">[gameScore incrementKey:@"score"];
 [gameScore saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
   if (succeeded) {
     // The score key has been incremented
@@ -306,8 +314,8 @@ To help with storing counter-type data, Rooftop provides methods that atomically
 }];
 </code></pre>
 
-<pre><code class="swift">
-gameScore.incrementKey("score")
+### Swift
+<pre><code class="swift">gameScore.incrementKey("score")
 gameScore.saveInBackgroundWithBlock {
   (success: Bool, error: NSError?) -> Void in
   if (success) {
@@ -330,13 +338,12 @@ To help with storing array data, there are three operations that can be used to 
 
 For example, we can add items to the set-like "skills" field like so:
 
-<pre><code class="objectivec">
-[gameScore addUniqueObjectsFromArray:@[@"flying", @"kungfu"] forKey:@"skills"];
+### Objective - C
+<pre><code class="objectivec">[gameScore addUniqueObjectsFromArray:@[@"flying", @"kungfu"] forKey:@"skills"];
 [gameScore saveInBackground];
 </code></pre>
 
-<pre><code class="swift">
-gameScore.addUniqueObjectsFromArray(["flying", "kungfu"], forKey:"skills")
+<pre><code class="swift">gameScore.addUniqueObjectsFromArray(["flying", "kungfu"], forKey:"skills")
 gameScore.saveInBackground()
 </code></pre>
 
@@ -347,28 +354,28 @@ Note that it is not currently possible to atomically add and remove items from a
 
 To delete an object from the cloud:
 
-<pre><code class="objectivec">
-[gameScore deleteInBackground];
+### Objective - C
+<pre><code class="objectivec">[gameScore deleteInBackground];
 </code></pre>
 
-<pre><code class="swift">
-gameScore.deleteInBackground()
+### Swift
+<pre><code class="swift">gameScore.deleteInBackground()
 </code></pre>
 
 If you want to run a callback when the delete is confirmed, you can use the `deleteInBackgroundWithBlock:` or `deleteInBackgroundWithTarget:selector:` methods. If you want to block the calling thread, you can use the `delete` method.
 
 You can delete a single field from an object with the `removeObjectForKey` method:
 
-<pre><code class="objectivec">
-// After this, the playerName field will be empty
+### Objective - C
+<pre><code class="objectivec">// After this, the playerName field will be empty
 [gameScore removeObjectForKey:@"playerName"];
 
 // Saves the field deletion to the Rooftop Cloud
 [gameScore saveInBackground];
 </code></pre>
 
-<pre><code class="swift">
-// After this, the playerName field will be empty
+### Swift
+<pre><code class="swift">// After this, the playerName field will be empty
 gameScore.removeObjectForKey("playerName")
 
 // Saves the field deletion to the Rooftop Cloud
@@ -381,8 +388,8 @@ Objects can have relationships with other objects. To model this behavior, any `
 
 For example, each `Comment` in a blogging app might correspond to one `Post`. To create a new `Post` with a single `Comment`, you could write:
 
-<pre><code class="objectivec">
-// Create the post
+### Objective - C
+<pre><code class="objectivec">// Create the post
 RTObject *myPost = [RTObject objectWithClassName:@"Post"];
 myPost[@"title"] = @"I'm Hungry";
 myPost[@"content"] = @"Where should we go for lunch?";
@@ -398,14 +405,13 @@ myComment[@"parent"] = myPost;
 [myComment saveInBackground];
 </code></pre>
 
-<pre><code class="swift">
-// Create the post
+### Swift
+<pre><code class="swift">// Create the post
 var myPost = RTObject(className:"Post")
 myPost["title"] = "I'm Hungry"
 myPost["content"] = "Where should we go for lunch?"
 
-// Create the comment
-var myComment = RTObject(className:"Comment")
+// Create the commentvar myComment = RTObject(className:"Comment")
 myComment["content"] = "Let's do Sushirrito."
 
 // Add a relation between the Post and Comment
@@ -417,28 +423,28 @@ myComment.saveInBackground()
 
 You can also link objects using just their `objectId`s like so:
 
-<pre><code class="objectivec">
-// Add a relation between the Post with objectId "1zEcyElZ80" and the comment
+### Objective - C
+<pre><code class="objectivec">// Add a relation between the Post with objectId "1zEcyElZ80" and the comment
 myComment[@"parent"] = [RTObject objectWithoutDataWithClassName:@"Post" objectId:@"1zEcyElZ80"];
 </code></pre>
 
-<pre><code class="swift">
-// Add a relation between the Post with objectId "1zEcyElZ80" and the comment
+### Swift
+<pre><code class="swift">// Add a relation between the Post with objectId "1zEcyElZ80" and the comment
 myComment["parent"] = RTObject(withoutDataWithClassName:"Post", objectId:"1zEcyElZ80")
 </code></pre>
 
 By default, when fetching an object, related `RTObject`s are not fetched.  These objects' values cannot be retrieved until they have been fetched like so:
 
-<pre><code class="objectivec">
-RTObject *post = fetchedComment[@"parent"];
+### Objective - C
+<pre><code class="objectivec">RTObject *post = fetchedComment[@"parent"];
 [post fetchIfNeededInBackgroundWithBlock:^(RTObject *post, NSError *error) {
   NSString *title = post[@"title"];
   // do something with your title variable
 }];
 </code></pre>
 
-<pre><code class="swift">
-var post = myComment["parent"] as RTObject
+### Swift
+<pre><code class="swift">var post = myComment["parent"] as RTObject
 post.fetchIfNeededInBackgroundWithBlock {
   (post: RTObject?, error: NSError?) -> Void in
   let title = post?["title"] as? NSString
@@ -448,8 +454,8 @@ post.fetchIfNeededInBackgroundWithBlock {
 
 You can also model a many-to-many relation using the `RTRelation` object.  This works similar to an `NSArray` of `RTObjects`, except that you don't need to download all the Objects in a relation at once.  This allows `RTRelation` to scale to many more objects than the `NSArray` of `RTObject` approach.  For example, a `User` may have many `Post`s that they might like.  In this case, you can store the set of `Post`s that a `User` likes using `relationForKey:`.  In order to add a post to the list, the code would look something like:
 
-<pre><code class="objectivec">
-RTUser *user = [RTUser currentUser];
+### Objective - C
+<pre><code class="objectivec">RTUser *user = [RTUser currentUser];
 RTRelation *relation = [user relationForKey:@"likes"];
 [relation addObject:post];
 [user saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
@@ -461,8 +467,8 @@ RTRelation *relation = [user relationForKey:@"likes"];
 }];
 </code></pre>
 
-<pre><code class="swift">
-var user = RTUser.currentUser()
+### Swift
+<pre><code class="swift">var user = RTUser.currentUser()
 var relation = user.relationForKey("likes")
 relation.addObject(post)
 user.saveInBackgroundWithBlock {
@@ -477,18 +483,18 @@ user.saveInBackgroundWithBlock {
 
 You can remove a post from the `RTRelation` with something like:
 
-<pre><code class="objectivec">
-[relation removeObject:post];
+### Objective - C
+<pre><code class="objectivec">[relation removeObject:post];
 </code></pre>
 
-<pre><code class="swift">
-relation.removeObject(post)
+### Swift
+<pre><code class="swift">relation.removeObject(post)
 </code></pre>
 
 By default, the list of objects in this relation are not downloaded.  You can get the list of `Post`s by using calling `findObjectsInBackgroundWithBlock:` on the `RTQuery` returned by `query`.  The code would look like:
 
-<pre><code class="objectivec">
-[[relation query] findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
+### Objective - C
+<pre><code class="objectivec">[[relation query] findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
   if (error) {
      // There was an error
   } else {
@@ -497,8 +503,8 @@ By default, the list of objects in this relation are not downloaded.  You can ge
 }];
 </code></pre>
 
-<pre><code class="swift">
-relation.query().findObjectsInBackgroundWithBlock {
+### Swift
+<pre><code class="swift">relation.query().findObjectsInBackgroundWithBlock {
   (objects: [RTObject]?, error: NSError?) -> Void in
   if let error = error {
     // There was an error
@@ -510,13 +516,13 @@ relation.query().findObjectsInBackgroundWithBlock {
 
 If you want only a subset of the `Post`s you can add extra constraints to the `RTQuery` returned by `query` like this:
 
-<pre><code class="objectivec">
-RTQuery *query = [relation query];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [relation query];
 // Add other query constraints.
 </code></pre>
 
-<pre><code class="swift">
-var query = relation.query()
+### Swift
+<pre><code class="swift">var query = relation.query()
 // Add other query constraints.
 </code></pre>
 
@@ -539,8 +545,8 @@ So far we've used values with type `NSString`, `NSNumber`, and `RTObject`. Rooft
 
 Some examples:
 
-<pre><code class="objectivec">
-NSNumber *number = @42;
+### Objective - C
+<pre><code class="objectivec">NSNumber *number = @42;
 NSNumber *bool = @NO;
 NSString *string = [NSString stringWithFormat:@"the number is %@", number];
 NSDate *date = [NSDate date];
@@ -561,8 +567,8 @@ bigObject[@"myPointerKey"] = pointer; // shows up as Pointer MyClassName in the 
 [bigObject saveInBackground];
 </code></pre>
 
-<pre><code class="swift">
-let number = 42
+### Swift
+<pre><code class="swift">let number = 42
 let bool = false
 let string = "the number is \(number)"
 let date = NSDate()
@@ -583,23 +589,23 @@ bigObject["myPointerKey"] = pointer // shows up as Pointer MyClassName in the Da
 bigObject.saveInBackground()
 </code></pre>
 
-We do not recommend storing large pieces of binary data like images or documents on `RTObject`. `RTObject`s should not exceed 128 kilobytes in size. We recommend you use `RTFile`s to store images, documents, and other types of files. You can do so by instantiating a `RTFile` object and setting it on a field. See [Files](#files) for more details.
+We do not recommend storing large pieces of binary data like images or documents on `RTObject`. `RTObject`s should not exceed 128 kilobytes in size. We recommend you use `RTFile`s to store images, documents, and other types of files. You can do so by instantiating a `RTFile` object and setting it on a field. See files for more details.
 
-For more information about how Rooftop handles data, check out our documentation on [Data](#data).
+For more information about how Rooftop handles data, check out our documentation on data.
 
 ## Subclasses
 
 Rooftop is designed to get you up and running as quickly as possible. You can access all of your data using the `RTObject` class and access any field with `objectForKey:` or the `[]` subscripting operator. In mature codebases, subclasses have many advantages, including terseness, extensibility, and support for autocomplete. Subclassing is completely optional, but can transform this code:
 
-<pre><code class="objectivec">
-RTObject *shield = [RTObject objectWithClassName:@"Armor"];
+### Objective - C
+<pre><code class="objectivec">RTObject *shield = [RTObject objectWithClassName:@"Armor"];
 shield[@"displayName"] = @"Wooden Shield";
 shield[@"fireProof"] = @NO;
 shield[@"rupees"] = @50;
 </code></pre>
 
-<pre><code class="swift">
-var shield = RTObject(className:"Armor")
+### Swift
+<pre><code class="swift">var shield = RTObject(className:"Armor")
 shield["displayName"] = "Wooden Shield"
 shield["fireProof"] = false
 shield["rupees"] = 50
@@ -607,15 +613,15 @@ shield["rupees"] = 50
 
 Into this:
 
-<pre><code class="objectivec">
-Armor *shield = [Armor object];
+### Objective - C
+<pre><code class="objectivec">Armor *shield = [Armor object];
 shield.displayName = @"Wooden Shield";
 shield.fireProof = NO;
 shield.rupees = 50;
 </code></pre>
 
-<pre><code class="swift">
-var shield = Armor()
+### Swift
+<pre><code class="swift">var shield = Armor()
 shield.displayName = "Wooden Shield"
 shield.fireProof = false
 shield.rupees = 50
@@ -650,13 +656,13 @@ You can access the displayName property using `armor.displayName` or `[armor dis
 
 `NSNumber` properties can be implemented either as `NSNumber`s or as their primitive counterparts. Consider the following example:
 
-<pre><code class="objectivec">
-@property BOOL fireProof;
+### Objective - C
+<pre><code class="objectivec">@property BOOL fireProof;
 @property int rupees;
 </code></pre>
 
-<pre><code class="swift">
-@NSManaged var fireProof: Boolean
+### Swift
+<pre><code class="swift">@NSManaged var fireProof: Boolean
 @NSManaged var rupees: Int
 </code></pre>
 
@@ -664,8 +670,8 @@ In this case, `game[@"fireProof"]` will return an `NSNumber` which is accessed u
 
 If you need more complicated logic than simple property access, you can declare your own methods as well:
 
-<pre><code class="objectivec">
-@dynamic iconFile;
+### Objective - C
+<pre><code class="objectivec">@dynamic iconFile;
 
 - (UIImageView *)iconView {
   RTImageView *view = [[RTImageView alloc] initWithImage:kPlaceholderImage];
@@ -675,8 +681,8 @@ If you need more complicated logic than simple property access, you can declare 
 }
 </code></pre>
 
-<pre><code class="swift">
-@NSManaged var iconFile: RTFile
+### Swift
+<pre><code class="swift">@NSManaged var iconFile: RTFile
 
 func iconView() -> UIImageView {
   let view = RTImageView(imageView: PlaceholderImage)
