@@ -8,8 +8,8 @@ In many cases, `getObjectInBackgroundWithId:block:` isn't powerful enough to spe
 
 The general pattern is to create a `RTQuery`, put conditions on it, and then retrieve a `NSArray` of matching `RTObject`s using either `findObjectsInBackgroundWithBlock:` or `findObjectsInBackgroundWithTarget:selector:`. For example, to retrieve scores with a particular `playerName`, use the `whereKey:equalTo:` method to constrain the value for a key.
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 [query whereKey:@"playerName" equalTo:@"Dan Stemkoski"];
 [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
   if (!error) {
@@ -25,32 +25,31 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
   }
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
-query.whereKey("playerName", equalTo:"Sean Plott")
-query.findObjectsInBackgroundWithBlock {
-  (objects: [RTObject]?, error: NSError?) -> Void in
 
-  if error == nil {
-    // The find succeeded.
-    print("Successfully retrieved \(objects!.count) scores.")
-    // Do something with the found objects
-    if let objects = objects {
-      for object in objects {
-        print(object.objectId)
-      }
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"GameScore")
+query.whereKey("playerName", equalTo:"Sean Plott")
+query.findObjectsInBackground { (objects, error) in  
+	if error == nil {
+    	// The find succeeded.
+		print("Successfully retrieved \(objects!.count) scores.")
+    	// Do something with the found objects
+    	if let objects = objects {
+      		for object in objects {
+        		print(object.objectId)
+      		}
+    	}
+    } else {
+    	// Log details of the failure
+    	print("Error: \(error!) \(error!.userInfo)")
     }
-  } else {
-    // Log details of the failure
-    print("Error: \(error!) \(error!.userInfo)")
-  }
 }
 </code></pre>
 
 Both `findObjectsInBackgroundWithBlock:` and `findObjectsInBackgroundWithTarget:selector:` work similarly in that they assure the network request is done without blocking, and run the block/callback in the main thread. There is a corresponding `findObjects` method that blocks the calling thread, if you are already in a background thread:
 
-<pre><code class="objectivec">
-// Only use this code if you are already running it in a background
+### Objective - C
+<pre><code class="objectivec">// Only use this code if you are already running it in a background
 // thread, or for testing purposes!
 
 // Using RTQuery
@@ -64,31 +63,40 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 NSArray* scoreArray = [query findObjects];
 </code></pre>
 
-<pre><code class="swift">
-// Only use this code if you are already running it in a background
+### Swift
+<pre><code class="swift">// Only use this code if you are already running it in a background
 // thread, or for testing purposes!
 
 // Using RTQuery
 let query = RTQuery(className: "GameScore")
 query.whereKey("playerName", equalTo: "Dan Stemkoski")
-let scoreArray = query.findObjects()
+do {
+	let scoreArray = try object?.findObjects()
+} catch {
+    // Handle error
+}
 
 // Using NSPredicate
 let predicate = NSPredicate(format:"playerName = 'Dan Stemkosk'")
 let query = RTQuery(className: "GameScore", predicate: predicate)
-let scoreArray = query.findObjects()
+do {
+	let scoreArray = try object?.findObjects()
+} catch {
+    // Handle error
+}
 </code></pre>
 
 ## Specifying Constraints with NSPredicate
 
 To get the most out of `RTQuery` we recommend using its methods listed below to add constraints. However, if you prefer using `NSPredicate`, a subset of the constraints can be specified by providing an `NSPredicate` when creating your `RTQuery`.
 
-<pre><code class="objectivec">
-NSPredicate *predicate = [NSPredicate predicateWithFormat:@"playerName = 'Dan Stemkosk'"];
+### Objective - C
+<pre><code class="objectivec">NSPredicate *predicate = [NSPredicate predicateWithFormat:@"playerName = 'Dan Stemkosk'"];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 </code></pre>
-<pre><code class="swift">
-let predicate = NSPredicate(format: "playerName = 'Dan Stemkosk'")
+
+### Swift
+<pre><code class="swift">let predicate = NSPredicate(format: "playerName = 'Dan Stemkosk'")
 var query = RTQuery(className: "GameScore", predicate: predicate)
 </code></pre>
 
@@ -112,16 +120,17 @@ The following types of predicates are **not** supported:
 
 There are several ways to put constraints on the objects found by a `RTQuery`. You can filter out objects with a particular key-value pair with `whereKey:notEqualTo`:
 
-<pre><code class="objectivec">
-// Using RTQuery
+### Objective - C
+<pre><code class="objectivec">// Using RTQuery
 [query whereKey:@"playerName" notEqualTo:@"Michael Yabuti"];
 
 // Using NSPredicate
 NSPredicate *predicate = [NSPredicate predicateWithFormat:   @"playerName != 'Michael Yabuti'"];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 </code></pre>
-<pre><code class="swift">
-// Using RTQuery
+
+### Swift
+<pre><code class="swift">// Using RTQuery
 query.whereKey("playerName", notEqualTo: "Michael Yabuti")
 
 // Using NSPredicate
@@ -131,8 +140,8 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 You can give multiple constraints, and objects will only be in the results if they match all of the constraints.  In other words, it's like an AND of constraints.
 
-<pre><code class="objectivec">
-// Using RTQuery
+### Objective - C
+<pre><code class="objectivec">// Using RTQuery
 [query whereKey:@"playerName" notEqualTo:@"Michael Yabuti"];
 [query whereKey:@"playerAge" greaterThan:@18];
 
@@ -140,8 +149,9 @@ You can give multiple constraints, and objects will only be in the results if th
 NSPredicate *predicate = [NSPredicate predicateWithFormat:   @"playerName != 'Michael Yabuti' AND playerAge > 18"];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 </code></pre>
-<pre><code class="swift">
-// Using RTQuery
+
+### Swift
+<pre><code class="swift">// Using RTQuery
 query.whereKey("playerName", notEqualTo: "Michael Yabuti")
 query.whereKey("playerAge", greaterThan: 18)
 
@@ -152,17 +162,18 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 You can limit the number of results by setting `limit`. By default, results are limited to 100, but anything from 1 to 1000 is a valid limit:
 
-<pre><code class="objectivec">
-query.limit = 10; // limit to at most 10 results
+### Objective - C
+<pre><code class="objectivec">query.limit = 10; // limit to at most 10 results
 </code></pre>
-<pre><code class="swift">
-query.limit = 10 // limit to at most 10 results
+
+### Swift
+<pre><code class="swift">query.limit = 10 // limit to at most 10 results
 </code></pre>
 
 If you want exactly one result, a more convenient alternative may be to use `getFirstObject` or `getFirstObjectInBackground` instead of using `findObject`.
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 [query whereKey:@"playerEmail" equalTo:@"dstemkoski@example.com"];
 [query getFirstObjectInBackgroundWithBlock:^(RTObject *object, NSError *error) {
   if (!object) {
@@ -173,11 +184,11 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
   }
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className: "GameScore")
+
+### Swift
+<pre><code class="swift">var query = RTQuery(className: "GameScore")
 query.whereKey("playerEmail", equalTo: "dstemkoski@example.com")
-query.getFirstObjectInBackgroundWithBlock {
-  (object: RTObject?, error: NSError?) -> Void in
+query.getFirstObjectInBackground { (object, error) in
   if error != nil || object == nil {
     print("The getFirstObject request failed.")
   } else {
@@ -189,24 +200,26 @@ query.getFirstObjectInBackgroundWithBlock {
 
 You can skip the first results by setting `skip`. This can be useful for pagination:
 
-<pre><code class="objectivec">
-query.skip = 10; // skip the first 10 results
+### Objective - C
+<pre><code class="objectivec">query.skip = 10; // skip the first 10 results
 </code></pre>
-<pre><code class="swift">
-query.skip = 10
+
+### Swift
+<pre><code class="swift">query.skip = 10
 </code></pre>
 
 For sortable types like numbers and strings, you can control the order in which results are returned:
 
-<pre><code class="objectivec">
-// Sorts the results in ascending order by the score field
+### Objective - C
+<pre><code class="objectivec">// Sorts the results in ascending order by the score field
 [query orderByAscending:@"score"];
 
 // Sorts the results in descending order by the score field
 [query orderByDescending:@"score"];
 </code></pre>
-<pre><code class="swift">
-// Sorts the results in ascending order by the score field
+
+### Swift
+<pre><code class="swift">// Sorts the results in ascending order by the score field
 query.orderByAscending("score")
 
 // Sorts the results in descending order by the score field
@@ -215,15 +228,17 @@ query.orderByDescending("score")
 
 You can add more sort keys to the query as follows:
 
-<pre><code class="objectivec">
-// Sorts the results in ascending order by the score field if the previous sort keys are equal.
+
+### Objective - C
+<pre><code class="objectivec">// Sorts the results in ascending order by the score field if the previous sort keys are equal.
 [query addAscendingOrder:@"score"];
 
 // Sorts the results in descending order by the score field if the previous sort keys are equal.
 [query addDescendingOrder:@"score"];
 </code></pre>
-<pre><code class="swift">
-// Sorts the results in ascending order by the score field if the previous sort keys are equal.
+
+### Swift
+<pre><code class="swift">// Sorts the results in ascending order by the score field if the previous sort keys are equal.
 query.addAscendingOrder("score")
 
 // Sorts the results in descending order by the score field if the previous sort keys are equal.
@@ -232,8 +247,8 @@ query.addDescendingOrder("score")
 
 For sortable types, you can also use comparisons in queries:
 
-<pre><code class="objectivec">
-// Restricts to wins < 50
+### Objective - C
+<pre><code class="objectivec">// Restricts to wins < 50
 [query whereKey:@"wins" lessThan:@50];
 // Or with NSPredicate
 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"wins < 50"];
@@ -257,8 +272,9 @@ query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 predicate = [NSPredicate predicateWithFormat:@"wins >= 50"];
 query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 </code></pre>
-<pre><code class="swift">
-// Restricts to wins < 50
+
+### Swift
+<pre><code class="swift">// Restricts to wins < 50
 query.whereKey("wins", lessThan: 50)
 // Or with NSPredicate
 let predicate = NSPredicate(format: "wins < 50")
@@ -285,8 +301,8 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 If you want to retrieve objects matching several different values, you can use `whereKey:containedIn:`, providing an array of acceptable values. This is often useful to replace multiple queries with a single query. For example, if you want to retrieve scores made by any player in a particular list:
 
-<pre><code class="objectivec">
-// Finds scores from any of Jonathan, Dario, or Shawn
+### Objective - C
+<pre><code class="objectivec">// Finds scores from any of Jonathan, Dario, or Shawn
 // Using RTQuery
 NSArray *names = @[@"Jonathan Walsh", @"Dario Wunsch", @"Shawn Simon"];
 [query whereKey:@"playerName" containedIn:names];
@@ -296,8 +312,9 @@ NSArray *names = @[@"Jonathan Walsh", @"Dario Wunsch", @"Shawn Simon"];
 NSPredicate *pred = [NSPredicate predicateWithFormat: @"playerName IN %@", names];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:pred];
 </code></pre>
-<pre><code class="swift">
-// Finds scores from any of Jonathan, Dario, or Shawn
+
+### Swift
+<pre><code class="swift">// Finds scores from any of Jonathan, Dario, or Shawn
 // Using RTQuery
 let names = ["Jonathan Walsh", "Dario Wunsch", "Shawn Simon"]
 query.whereKey("playerName", containedIn: names)
@@ -310,8 +327,9 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 If you want to retrieve objects that do not match any of several values you can use `whereKey:notContainedIn:`, providing an array of acceptable values. For example, if you want to retrieve scores from players besides those in a list:
 
-<pre><code class="objectivec">
-// Finds scores from anyone who is neither Jonathan, Dario, nor Shawn
+
+### Objective - C
+<pre><code class="objectivec">// Finds scores from anyone who is neither Jonathan, Dario, nor Shawn
 // Using RTQuery
 NSArray *names = @[@"Jonathan Walsh", @"Dario Wunsch", @"Shawn Simon"];
 [query whereKey:@"playerName" notContainedIn:names];
@@ -321,8 +339,9 @@ NSArray *names = @[@"Jonathan Walsh", @"Dario Wunsch", @"Shawn Simon"];
 NSPredicate *pred = [NSPredicate predicateWithFormat: @"NOT (playerName IN %@)", names];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:pred];
 </code></pre>
-<pre><code class="swift">
-// Finds scores from anyone who is neither Jonathan, Dario, nor Shawn
+
+### Swift
+<pre><code class="swift">// Finds scores from anyone who is neither Jonathan, Dario, nor Shawn
 // Using RTQuery
 let names = ["Jonathan Walsh", "Dario Wunsch", "Shawn Simon"]
 query.whereKey("playerName", notContainedIn: names)
@@ -335,8 +354,8 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 If you want to retrieve objects that have a particular key set, you can use `whereKeyExists`. Conversely, if you want to retrieve objects without a particular key set, you can use `whereKeyDoesNotExist`.
 
-<pre><code class="objectivec">
-// Finds objects that have the score set
+### Objective - C
+<pre><code class="objectivec">// Finds objects that have the score set
 [query whereKeyExists:@"score"];
 // Or using NSPredicate
 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"score IN SELF"];
@@ -348,6 +367,8 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"NOT (score IN SELF)"];
 RTQuery *query = [RTQuery queryWithClassName:@"GameScore" predicate:predicate];
 </code></pre>
+
+### Swift
 <pre><code class="swift">
 // Finds objects that have the score set
 query.whereKeyExists("score")
@@ -364,8 +385,8 @@ let query = RTQuery(className: "GameScore", predicate: predicate)
 
 You can use the `whereKey:matchesKey:inQuery:` method to get objects where a key matches the value of a key in a set of objects resulting from another query.  For example, if you have a class containing sports teams and you store a user's hometown in the user class, you can issue one query to find the list of users whose hometown teams have winning records.  The query would look like:
 
-<pre><code class="objectivec">
-RTQuery *teamQuery = [RTQuery queryWithClassName:@"Team"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *teamQuery = [RTQuery queryWithClassName:@"Team"];
 [teamQuery whereKey:@"winPct" greaterThan:@(0.5)];
 RTQuery *userQuery = [RTQuery queryForUser];
 [userQuery whereKey:@"hometown" matchesKey:@"city" inQuery:teamQuery];
@@ -373,13 +394,13 @@ RTQuery *userQuery = [RTQuery queryForUser];
     // results will contain users with a hometown team with a winning record
 }];
 </code></pre>
-<pre><code class="swift">
-var teamQuery = RTQuery(className:"Team")
+
+### Swift
+<pre><code class="swift">var teamQuery = RTQuery(className:"Team")
 teamQuery.whereKey("winPct", greaterThan:0.5)
 var userQuery = RTUser.query()
 userQuery!.whereKey("hometown", matchesKey:"city", inQuery:teamQuery)
-userQuery!.findObjectsInBackgroundWithBlock {
-  (results: [RTObject]?, error: NSError?) -> Void in
+userQuery!.findObjectsInBackground { (results, error) in
   if error == nil {
     // results will contain users with a hometown team with a winning record
   }
@@ -388,36 +409,36 @@ userQuery!.findObjectsInBackgroundWithBlock {
 
 Conversely, to get objects where a key does not match the value of a key in a set of objects resulting from another query, use `whereKey:doesNotMatchKey:inQuery:`.  For example, to find users whose hometown teams have losing records:
 
-<pre><code class="objectivec">
-RTQuery *losingUserQuery = [RTQuery queryForUser];
+### Objective - C
+<pre><code class="objectivec">RTQuery *losingUserQuery = [RTQuery queryForUser];
 [losingUserQuery whereKey:@"hometown" doesNotMatchKey:@"city" inQuery:teamQuery];
 [losingUserQuery findObjectsInBackgroundWithBlock:^(NSArray *results, NSError *error) {
     // results will contain users with a hometown team with a losing record
 }];
 </code></pre>
-<pre><code class="swift">
-var losingUserQuery = RTUser.query()
+
+### Swift
+<pre><code class="swift">var losingUserQuery = RTUser.query()
 losingUserQuery!.whereKey("hometown", doesNotMatchKey:"city", inQuery:teamQuery)
-losingUserQuery!.findObjectsInBackgroundWithBlock {
-  (results: [RTObject]?, error: NSError?) -> Void in
+losingUserQuery!.findObjectsInBackground { (results, error) in
   // results will contain users with a hometown team with a losing records
 }
 </code></pre>
 
 You can restrict the fields returned by calling `selectKeys:` with an `NSArray` of keys. To retrieve documents that contain only the `score` and `playerName` fields (and also special built-in fields such as `objectId`, `createdAt`, and `updatedAt`):
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 [query selectKeys:@[@"playerName", @"score"]];
 [query findObjectsInBackgroundWithBlock:^(NSArray *results, NSError *error) {
     // objects in results will only contain the playerName and score fields
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
+
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"GameScore")
 query.selectKeys(["playerName", "score"])
-query.findObjectsInBackgroundWithBlock {
-  (objects: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (object, error) in
   if error == nil {
     // objects in results will only contain the playerName and score fields
   }
@@ -426,16 +447,17 @@ query.findObjectsInBackgroundWithBlock {
 
 The remaining fields can be fetched later by calling one of the `fetchIfNeeded` variants on the returned objects:
 
-<pre><code class="objectivec">
-RTObject *object = (RTObject*)results[0];
+### Objective - C
+<pre><code class="objectivec">RTObject *object = (RTObject*)results[0];
 [object fetchIfNeededInBackgroundWithBlock:^(RTObject *object, NSError *error) {
   // all fields of the object will now be available here.
 }];
 </code></pre>
-<pre><code class="swift">
-var object = results[0] as RTObject!
-object.fetchIfNeededInBackgroundWithBlock {
-  (object: RTObject?, error: NSError?) -> Void in
+
+### Swift
+<pre><code class="swift">var object = results[0] as RTObject!
+object.fetchIfNeededInBackground {
+  (object, error) -> Void in
   // all fields of the object will now be available here.
 }
 </code></pre>
@@ -444,8 +466,8 @@ object.fetchIfNeededInBackgroundWithBlock {
 
 For keys with an array type, you can find objects where the key's array value contains 2 by:
 
-<pre><code class="objectivec">
-// Find objects where the array in arrayKey contains 2.
+### Objective - C
+<pre><code class="objectivec">// Find objects where the array in arrayKey contains 2.
 // Using RTQuery
 [query whereKey:@"arrayKey" equalTo:@2];
 
@@ -453,8 +475,9 @@ For keys with an array type, you can find objects where the key's array value co
 NSPredicate *predicate = [NSPredicate predicateWithFormat:@"2 IN arrayKey"];
 RTQuery *query = [RTQuery queryWithClassName:@"MyClass" predicate:predicate];
 </code></pre>
-<pre><code class="swift">
-// Find objects where the array in arrayKey contains 2.
+
+### Swift
+<pre><code class="swift">// Find objects where the array in arrayKey contains 2.
 // Using RTQuery
 query.whereKey("arrayKey", equalTo: 2)
 
@@ -465,27 +488,24 @@ let query = RTQuery(className: "MyClass", predicate: predicate)
 
 You can also find objects where the key's array value contains each of the values 2, 3, and 4 with the following:
 
-<pre><code class="objectivec">
-// Find objects where the array in arrayKey contains each of the
+### Objective - C
+<pre><code class="objectivec">// Find objects where the array in arrayKey contains each of the
 // elements 2, 3, and 4.
 [query whereKey:@"arrayKey" containsAllObjectsInArray:@[@2, @3, @4]];
 </code></pre>
-<pre><code class="swift">
-// Find objects where the array in arrayKey contains each of the
+
+### Swift
+<pre><code class="swift">// Find objects where the array in arrayKey contains each of the
 // elements 2, 3, and 4.
 query.whereKey("arrayKey", containsAllObjectsInArray:[2, 3, 4])
 </code></pre>
 
 ## Queries on String Values
 
-<div class='tip info'><div>
- If you're trying to implement a generic search feature, we recommend taking a look at this blog post: <a href="http://blog.Rooftop.com/learn/engineering/implementing-scalable-search-on-a-nosql-backend/">Implementing Scalable Search on a NoSQL Backend</a>.
-</div></div>
-
 Use `whereKey:hasPrefix:` to restrict to string values that start with a particular string. Similar to a MySQL LIKE operator, this is indexed so it is efficient for large datasets:
 
-<pre><code class="objectivec">
-// Finds barbecue sauces that start with "Big Daddy".
+### Objective - C
+<pre><code class="objectivec">// Finds barbecue sauces that start with "Big Daddy".
 // Using RTQuery
 RTQuery *query = [RTQuery queryWithClassName:@"BarbecueSauce"];
 [query whereKey:@"name" hasPrefix:@"Big Daddy's"];
@@ -494,8 +514,9 @@ RTQuery *query = [RTQuery queryWithClassName:@"BarbecueSauce"];
 NSPredicate *pred = [NSPredicate predicateWithFormat:@"name BEGINSWITH 'Big Daddy"];
 RTQuery *query = [RTQuery queryWithClassName:@"BarbecueSauce" predicate:pred];
 </code></pre>
-<pre><code class="swift">
-// Finds barbecue sauces that start with "Big Daddy".
+
+### Swift
+<pre><code class="swift">// Finds barbecue sauces that start with "Big Daddy".
 // Using RTQuery
 let query = RTQuery("BarbecueSauce")
 query.whereKey("name", hasPrefix: "Big Daddy's")
@@ -514,8 +535,8 @@ Queries that have regular expression constraints are very expensive. Refer to th
 
 There are several ways to issue queries for relational data. If you want to retrieve objects where a field matches a particular `RTObject`, you can use `whereKey:equalTo:` just like for other data types. For example, if each `Comment` has a `Post` object in its `post` field, you can fetch comments for a particular `Post`:
 
-<pre><code class="objectivec">
-// Assume RTObject *myPost was previously created.
+### Objective - C
+<pre><code class="objectivec">// Assume RTObject *myPost was previously created.
 // Using RTQuery
 RTQuery *query = [RTQuery queryWithClassName:@"Comment"];
 [query whereKey:@"post" equalTo:myPost];
@@ -532,13 +553,13 @@ RTQuery *query = [RTQuery queryWithClassName:@"Comment" predicate:predicate];
     // comments now contains the comments for myPost
 }];
 </code></pre>
-<pre><code class="swift">
-// Assume RTObject *myPost was previously created.
+
+### Swift
+<pre><code class="swift">// Assume RTObject *myPost was previously created.
 // Using RTQuery
 let query = RTQuery(className: "Comment")
 query.whereKey("post", equalTo: myPost)
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (comments, error) in
     // comments now contains the comments for myPost
 }
 
@@ -546,24 +567,24 @@ query.findObjectsInBackgroundWithBlock {
 let predicate = NSPredicate(format: "post = %@", myPost)
 let query = RTQuery(className: "Comment", predicate: predicate)
 
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (comments, error) in
     // comments now contains the comments for myPost
 }
 </code></pre>
 
 You can also do relational queries by `objectId`:
 
-<pre><code class="objectivec">
-// Using RTQuery
+### Objective - C
+<pre><code class="objectivec">// Using RTQuery
 [query whereKey:@"post" equalTo:[RTObject objectWithoutDataWithClassName:@"Post" objectId:@"1zEcyElZ80"]];
 
 // Using NSPredicate
 [NSPredicate predicateWithFormat:@"post = %@",
     [RTObject objectWithoutDataWithClassName:@"Post" objectId:@"1zEcyElZ80"]];
 </code></pre>
-<pre><code class="swift">
-// Using RTQuery
+
+### Swift
+<pre><code class="swift">// Using RTQuery
 query.whereKey("post", equalTo: RTObject(withoutDataWithClassName: "Post", objectId: "1zEcyElZ80"))
 
 // Using NSPredicate
@@ -572,8 +593,8 @@ NSPredicate(format: "post = %@", RTObject(withoutDataWithClassName: "Post", obje
 
 If you want to retrieve objects where a field contains a `RTObject` that match a different query, you can use `whereKey:matchesQuery`. Note that the default limit of 100 and maximum limit of 1000 apply to the inner query as well, so with large data sets you may need to construct queries carefully to get the desired behavior. In order to find comments for posts with images, you can do:
 
-<pre><code class="objectivec">
-// Using RTQuery
+### Objective - C
+<pre><code class="objectivec">// Using RTQuery
 RTQuery *innerQuery = [RTQuery queryWithClassName:@"Post"];
 [innerQuery whereKeyExists:@"image"];
 RTQuery *query = [RTQuery queryWithClassName:@"Comment"];
@@ -593,14 +614,14 @@ RTQuery *query = [RTQuery queryWithClassName:@"Comment" predicate:pred];
     // comments now contains the comments for posts with images
 }];
 </code></pre>
-<pre><code class="swift">
-// Using RTQuery
+
+### Swift
+<pre><code class="swift">// Using RTQuery
 let innerQuery = RTQuery(className: "Post")
 innerQuery.whereKeyExists("image")
 let query = RTQuery(className: "Comment")
 query.whereKey("post", matchesQuery: innerQuery)
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (comments, error) in
     // comments now contains the comments for posts with images
 }
 
@@ -611,16 +632,15 @@ let innerQuery = RTQuery(className: "Post", predicate: innerPred)
 let pred = NSPredicate(format: "post IN %@", innerQuery)
 let query = RTQuery(className: "Comment", predicate: pred)
 
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackgroundWithBlock { (comments, error) in
     // comments now contains the comments for posts with images
 }
 </code></pre>
 
 If you want to retrieve objects where a field contains a `RTObject` that does not match a different query, you can use `whereKey:doesNotMatchQuery`.  In order to find comments for posts without images, you can do:
 
-<pre><code class="objectivec">
-// Using RTQuery
+### Objective - C
+<pre><code class="objectivec">// Using RTQuery
 RTQuery *innerQuery = [RTQuery queryWithClassName:@"Post"];
 [innerQuery whereKeyExists:@"image"];
 RTQuery *query = [RTQuery queryWithClassName:@"Comment"];
@@ -640,14 +660,14 @@ RTQuery *query = [RTQuery queryWithClassName:@"Comment" predicate:pred];
     // comments now contains the comments for posts without images
 }];
 </code></pre>
-<pre><code class="swift">
-// Using RTQuery
+
+### Swift
+<pre><code class="swift">// Using RTQuery
 let innerQuery = RTQuery(className: "Post")
 innerQuery.whereKeyExists("image")
 let query = RTQuery(className: "Comment")
 query.whereKey("post", doesNotMatchQuery: innerQuery)
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (comments, error) -> Void in
     // comments now contains the comments for posts with images
 }
 
@@ -658,16 +678,15 @@ let innerQuery = RTQuery(className: "Post", predicate: innerPred)
 let pred = NSPredicate(format: "NOT (post IN %@)", innerQuery)
 let query = RTQuery(className: "Comment", predicate: pred)
 
-query.findObjectsInBackgroundWithBlock {
-    (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackgroundWithBlock { (comments, error) in
     // comments now contains the comments for posts with images
 }
 </code></pre>
 
 In some situations, you want to return multiple types of related objects in one query. You can do this with the `includeKey:` method. For example, let's say you are retrieving the last ten comments, and you want to retrieve their related posts at the same time:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"Comment"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"Comment"];
 
 // Retrieve the most recent ones
 [query orderByDescending:@"createdAt"];
@@ -688,8 +707,9 @@ query.limit = 10;
     }
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className:"Comment")
+
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"Comment")
 
 // Retrieve the most recent ones
 query.orderByDescending("createdAt")
@@ -700,8 +720,7 @@ query.limit = 10
 // Include the post data with each comment
 query.includeKey("post")
 
-query.findObjectsInBackgroundWithBlock {
-  (comments: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (comments, error) in
 
   // Comments now contains the last ten comments, and the "post" field
   // has been populated. For example:
@@ -717,11 +736,9 @@ query.findObjectsInBackgroundWithBlock {
 
 You can also do multi level includes using dot notation.  If you wanted to include the post for a comment and the post's author as well you can do:
 
-<pre><code class="objectivec">
-[query includeKey:@"post.author"];
+<pre><code class="objectivec">[query includeKey:@"post.author"];
 </code></pre>
-<pre><code class="swift">
-query.includeKey("post.author")
+<pre><code class="swift">query.includeKey("post.author")
 </code></pre>
 
 You can issue a query with multiple fields included by calling `includeKey:` multiple times. This functionality also works with RTQuery helpers like `getFirstObject` and `getObjectInBackground`
@@ -730,8 +747,8 @@ You can issue a query with multiple fields included by calling `includeKey:` mul
 
 If you have enabled the local datastore by calling `[Rooftop enableLocalDatastore]` before your call to `[Rooftop setApplicationId:clientKey:]`, then you can also query against the objects stored locally on the device. To do this, call the `fromLocalDatastore` method on the query.
 
-<pre><code class="objectivec">
-[query fromLocalDatastore];
+### Objective - C
+<pre><code class="objectivec">[query fromLocalDatastore];
 [[query findObjectsInBackground] continueWithBlock:^id(BFTask *task) {
   if (!task.error) {
     // There was an error.
@@ -742,10 +759,10 @@ If you have enabled the local datastore by calling `[Rooftop enableLocalDatastor
   return task;
 }];
 </code></pre>
-<pre><code class="swift">
-query.fromLocalDatastore()
-query.findObjectsInBackground().continueWithBlock({
-  (task: BFTask?) -> AnyObject! in
+
+### Swift
+<pre><code class="swift">query.fromLocalDatastore()
+query.findObjectsInBackground() { (task) in
   if let error = task?.error {
       // There was an error.
       return task
@@ -765,8 +782,8 @@ It's often useful to cache the result of a query on disk. This lets you show dat
 
 The default query behavior doesn't use the cache, but you can enable caching by setting `query.cachePolicy`. For example, to try the network and then fall back to cached data if the network is not available:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 query.cachePolicy = kRTCachePolicyNetworkElseCache;
 [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
   if (!error) {
@@ -778,11 +795,11 @@ query.cachePolicy = kRTCachePolicyNetworkElseCache;
   }
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
+
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"GameScore")
 query.cachePolicy = .CacheElseNetwork
-query.findObjectsInBackgroundWithBlock {
-  (objects: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackgroundWithBlock { (objects, error) in
   if error == nil {
     // Results were successfully found, looking first on the
     // network and then on disk.
@@ -805,25 +822,19 @@ Rooftop provides several different cache policies:
 If you need to control the cache's behavior, you can use methods provided in RTQuery to interact with the cache.  You can do the following operations on the cache:
 
 *   Check to see if there is a cached result for the query with:
-<pre><code class="objectivec">
-BOOL isInCache = [query hasCachedResult];
+<pre><code class="objectivec">BOOL isInCache = [query hasCachedResult];
 </code></pre>
-<pre><code class="swift">
-let isInCache = query.hasCachedResult()
+<pre><code class="swift">let isInCache = query.hasCachedResult()
 </code></pre>
 *   Remove any cached results for a query with:
-<pre><code class="objectivec">
-[query clearCachedResult];
+<pre><code class="objectivec">[query clearCachedResult];
 </code></pre>
-<pre><code class="swift">
-query.clearCachedResult()
+<pre><code class="swift">query.clearCachedResult()
 </code></pre>
 *   Remove cached results for queries with:
-<pre><code class="objectivec">
-[RTQuery clearAllCachedResults];
+<pre><code class="objectivec">[RTQuery clearAllCachedResults];
 </code></pre>
-<pre><code class="swift">
-RTQuery.clearAllCachedResults()
+<pre><code class="swift">RTQuery.clearAllCachedResults()
 </code></pre>
 
 Query caching also works with RTQuery helpers including `getFirstObject` and `getObjectInBackground`.
@@ -834,8 +845,8 @@ Caveat: Count queries are rate limited to a maximum of 160 requests per minute. 
 
 If you just need to count how many objects match a query, but you do not need to retrieve the objects that match, you can use `countObjects` instead of `findObjects`. For example, to count how many games have been played by a particular player:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 [query whereKey:@"playername" equalTo:@"Sean Plott"];
 [query countObjectsInBackgroundWithBlock:^(int count, NSError *error) {
   if (!error) {
@@ -846,11 +857,11 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
   }
 }];
 </code></pre>
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
+
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"GameScore")
 query.whereKey("playerName", equalTo:"Sean Plott")
-query.countObjectsInBackgroundWithBlock {
-  (count: Int32, error: NSError?) -> Void in
+query.countObjectsInBackground { (count, error) in
   if error == nil {
     print("Sean has played \(count) games")
   }
@@ -863,8 +874,8 @@ If you want to block the calling thread, you can also use the synchronous `count
 
 If you want to find objects that match one of several queries, you can use `orQueryWithSubqueries:` method.  For instance, if you want to find players with either have a lot of wins or a few wins, you can do:
 
-<pre><code class="objectivec">
-RTQuery *lotsOfWins = [RTQuery queryWithClassName:@"Player"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *lotsOfWins = [RTQuery queryWithClassName:@"Player"];
 [lotsOfWins whereKey:@"wins" greaterThan:@150];
 
 RTQuery *fewWins = [RTQuery queryWithClassName:@"Player"];
@@ -874,16 +885,16 @@ RTQuery *query = [RTQuery orQueryWithSubqueries:@[fewWins,lotsOfWins]];
   // results contains players with lots of wins or only a few wins.
 }];
 </code></pre>
-<pre><code class="swift">
-var lotsOfWins = RTQuery(className:"Player")
+
+### Swift
+<pre><code class="swift">var lotsOfWins = RTQuery(className:"Player")
 lotsOfWins.whereKey("wins", greaterThan:150)
 
 var fewWins = RTQuery(className:"Player")
 fewWins.whereKey("wins", lessThan:5)
 
 var query = RTQuery.orQueryWithSubqueries([lotsOfWins, fewWins])
-query.findObjectsInBackgroundWithBlock {
-  (results: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (results, error) in
   if error == nil {
     // results contains players with lots of wins or only a few wins.
   }
@@ -898,8 +909,8 @@ Note that we do not, however, support GeoPoint or non-filtering constraints (e.g
 
 You can get a query for objects of a particular subclass using the class method `query`. The following example queries for armors that the user can afford:
 
-<pre><code class="objectivec">
-RTQuery *query = [Armor query];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [Armor query];
 [query whereKey:@"rupees" lessThanOrEqualTo:[RTUser currentUser][@"rupees"]];
 [query findObjectsInBackgroundWithBlock:^(NSArray *objects, NSError *error) {
   if (!error) {
@@ -908,10 +919,11 @@ RTQuery *query = [Armor query];
   }
 }];
 </code></pre>
-<pre><code class="swift">
-let query = Armor.query()
+
+### Swift
+<pre><code class="swift">let query = Armor.query()
 query.whereKey("rupees", lessThanOrEqualTo: RTUser.currentUser()["rupees"])
-query.findObjectsInBackgroundWithBlock { (objects: [RTObject]?, error: NSError?) -> Void in
+query.findObjectsInBackground { (objects, error) in
   if error == nil {
     if let objects = objects as? [Armor], firstArmor = objects.first {
       //...

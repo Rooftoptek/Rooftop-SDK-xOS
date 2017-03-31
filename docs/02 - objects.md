@@ -16,7 +16,9 @@ Each `RTObject` has a class name that you can use to distinguish different sorts
 
 ## Saving Objects
 
-Let's say you want to save the `GameScore` described above to the Rooftop Cloud. The interface is similar to a `NSMutableDictionary`, plus the `saveInBackground` method:
+**Note:** before saving any `RTObject` you have to specify permission object called `ACL`. Let's see on example.
+
+Let's say you want to save the `GameScore` described above to the Rooftop Cloud with `Read` and `Update` permissions for other users. The interface is similar to a `NSMutableDictionary`, plus the `saveInBackground` method:
 ### Objective - C
 <pre><code class="objectivec">RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
 gameScore[@"score"] = @1337;
@@ -219,8 +221,7 @@ If you already have an instance of the object, you can instead use the `fetchFro
 
 ### Swift
 <pre><code class="swift">let object = RTObject(withoutDataWithClassName:"GameScore", objectId:"xWMyZ4YEGZ")
-object.fetchFromLocalDatastoreInBackground().continueWithBlock({
-  (task: BFTask!) -> AnyObject! in
+object.fetchFromLocalDatastoreInBackground { (object, error) in
   if task.error != nil {
       // There was an error.
       return task
@@ -234,20 +235,20 @@ object.fetchFromLocalDatastoreInBackground().continueWithBlock({
 
 When you are done with the object and no longer need to keep it on the device, you can release it with `unpinInBackground`.
 
-<pre><code class="objectivec">
-[gameScore unpinInBackground];
+### Objective - C
+<pre><code class="objectivec">[gameScore unpinInBackground];
 </code></pre>
 
-<pre><code class="swift">
-gameScore.unpinInBackground()
+### Swift
+<pre><code class="swift">gameScore.unpinInBackground()
 </code></pre>
 
 ## Saving Objects Offline
 
 Most save functions execute immediately, and inform your app when the save is complete. If you don't need to know when the save has finished, you can use `saveEventually` instead. The advantage is that if the user currently doesn't have a network connection, `saveEventually` will store the update on the device until a network connection is re-established. If your app is closed before the connection is back, Rooftop will try again the next time the app is opened. All calls to `saveEventually` (and `deleteEventually`) are executed in the order they are called, so it is safe to call `saveEventually` on an object multiple times.
 
-<pre><code class="objectivec">
-// Create the object.
+### Objective - C
+<pre><code class="objectivec">// Create the object.
 RTObject *gameScore = [RTObject objectWithClassName:@"GameScore"];
 gameScore[@"score"] = @1337;
 gameScore[@"playerName"] = @"Sean Plott";
@@ -255,8 +256,8 @@ gameScore[@"cheatMode"] = @NO;
 [gameScore saveEventually];
 </code></pre>
 
-<pre><code class="swift">
-var gameScore = RTObject(className:"GameScore")
+### Swift
+<pre><code class="swift">var gameScore = RTObject(className:"GameScore")
 gameScore["score"] = 1337
 gameScore["playerName"] = "Sean Plott"
 gameScore["cheatMode"] = false
@@ -267,8 +268,8 @@ gameScore.saveEventually()
 
 Updating an object is simple. Just set some new data on it and call one of the save methods. Assuming you have saved the object and have the `objectId`, you can retrieve the `RTObject` using a `RTQuery` and update its data:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 
 // Retrieve the object by id
 [query getObjectInBackgroundWithId:@"xWMyZ4YEGZ"
@@ -281,13 +282,12 @@ RTQuery *query = [RTQuery queryWithClassName:@"GameScore"];
 }];
 </code></pre>
 
-<pre><code class="swift">
-var query = RTQuery(className:"GameScore")
-query.getObjectInBackgroundWithId("xWMyZEGZ") {
-  (gameScore: RTObject?, error: NSError?) -> Void in
-  if error != nil {
+### Swift
+<pre><code class="swift">var query = RTQuery(className:"GameScore")
+query.getObjectInBackgroundWithId("xWMyZEGZ") { (task) in
+  if task.error != nil {
     print(error)
-  } else if let gameScore = gameScore {
+  } else if let gameScore = task.result {
     gameScore["cheatMode"] = true
     gameScore["score"] = 1338
     gameScore.saveInBackground()
@@ -316,8 +316,7 @@ To help with storing counter-type data, Rooftop provides methods that atomically
 
 ### Swift
 <pre><code class="swift">gameScore.incrementKey("score")
-gameScore.saveInBackgroundWithBlock {
-  (success: Bool, error: NSError?) -> Void in
+gameScore.saveInBackground { (success, error) in
   if (success) {
     // The score key has been incremented
   } else {
@@ -343,6 +342,7 @@ For example, we can add items to the set-like "skills" field like so:
 [gameScore saveInBackground];
 </code></pre>
 
+### Swift
 <pre><code class="swift">gameScore.addUniqueObjectsFromArray(["flying", "kungfu"], forKey:"skills")
 gameScore.saveInBackground()
 </code></pre>
@@ -445,9 +445,8 @@ By default, when fetching an object, related `RTObject`s are not fetched.  These
 
 ### Swift
 <pre><code class="swift">var post = myComment["parent"] as RTObject
-post.fetchIfNeededInBackgroundWithBlock {
-  (post: RTObject?, error: NSError?) -> Void in
-  let title = post?["title"] as? NSString
+post.fetchInBackground { (object, error) -> Void in
+  let title = object?["title"] as? NSString
   // do something with your title variable
 }
 </code></pre>
@@ -471,8 +470,7 @@ RTRelation *relation = [user relationForKey:@"likes"];
 <pre><code class="swift">var user = RTUser.currentUser()
 var relation = user.relationForKey("likes")
 relation.addObject(post)
-user.saveInBackgroundWithBlock {
-  (success: Bool, error: NSError?) -> Void in
+user.saveInBackground { (success, error) in
   if (success) {
     // The post has been added to the user's likes relation.
   } else {
@@ -504,8 +502,7 @@ By default, the list of objects in this relation are not downloaded.  You can ge
 </code></pre>
 
 ### Swift
-<pre><code class="swift">relation.query().findObjectsInBackgroundWithBlock {
-  (objects: [RTObject]?, error: NSError?) -> Void in
+<pre><code class="swift">relation.query().findObjectsInBackground { (objects, error) in
   if let error = error {
     // There was an error
   } else {

@@ -21,8 +21,8 @@ We'll go through each of these in detail as we run through the various use cases
 
 The first thing your app will do is probably ask the user to sign up. The following code illustrates a typical sign up:
 
-<pre><code class="objectivec">
-- (void)myMethod {
+### Objective - C
+<pre><code class="objectivec">- (void)myMethod {
     RTUser *user = [RTUser user];
     user.username = @"my name";
     user.password = @"my pass";
@@ -38,24 +38,24 @@ The first thing your app will do is probably ask the user to sign up. The follow
     }];
 }
 </code></pre>
-<pre><code class="swift">
-func myMethod() {
-  var user = RTUser()
-  user.username = "myUsername"
-  user.password = "myPassword"
-  user.email = "email@example.com"
-  // other fields can be set just like with RTObject
-  user["phone"] = "415-392-0202"
 
-  user.signUpInBackgroundWithBlock {
-    (succeeded: Bool, error: NSError?) -> Void in
-    if let error = error {
-      let errorString = error.userInfo["error"] as? NSString
-      // Show the errorString somewhere and let the user try again.
-    } else {
-      // Hooray! Let them use the app now.
-    }
-  }
+### Swift
+<pre><code class="swift">func myMethod() {
+	var user = RTUser()
+	user.username = "myUsername"
+	user.password = "myPassword"
+	user.email = "email@example.com"
+	// other fields can be set just like with RTObject
+	user["phone"] = "415-392-0202"
+	
+	user.signUpInBackground { (success, error) in
+		if let error = error {
+		let errorString = error.userInfo["error"] as? NSString
+		// Show the errorString somewhere and let the user try again.
+		} else {
+		// Hooray! Let them use the app now.
+		}
+	}
 }
 </code></pre>
 
@@ -73,8 +73,8 @@ You are free to use an email address as the username. Simply ask your users to e
 
 Of course, after you allow users to sign up, you need to let them log in to their account in the future. To do this, you can use the class method `logInWithUsernameInBackground:password:`.
 
-<pre><code class="objectivec">
-[RTUser logInWithUsernameInBackground:@"myname" password:@"mypass"
+### Objective - C
+<pre><code class="objectivec">[RTUser logInWithUsernameInBackground:@"myname" password:@"mypass"
   block:^(RTUser *user, NSError *error) {
     if (user) {
       // Do stuff after successful login.
@@ -83,14 +83,14 @@ Of course, after you allow users to sign up, you need to let them log in to thei
     }
 }];
 </code></pre>
-<pre><code class="swift">
-RTUser.logInWithUsernameInBackground("myname", password:"mypass") {
-  (user: RTUser?, error: NSError?) -> Void in
-  if user != nil {
-    // Do stuff after successful login.
-  } else {
-    // The login failed. Check error to see why.
-  }
+
+### Swift
+<pre><code class="swift">RTUser.logInWithUsernameInBackground("myname", password:"mypass") { (user, error) in
+	if user != nil {
+		// Do stuff after successful login.
+	} else {
+		// The login failed. Check error to see why.
+	}
 }
 </code></pre>
 
@@ -111,16 +111,17 @@ It would be bothersome if the user had to log in every time they open your app. 
 
 Whenever you use any signup or login methods, the user is cached on disk. You can treat this cache as a session, and automatically assume the user is logged in:
 
-<pre><code class="objectivec">
-RTUser *currentUser = [RTUser currentUser];
+### Objective - C
+<pre><code class="objectivec">RTUser *currentUser = [RTUser currentUser];
 if (currentUser) {
     // do stuff with the user
 } else {
     // show the signup or login screen
 }
 </code></pre>
-<pre><code class="swift">
-var currentUser = RTUser.currentUser()
+
+### Swift
+<pre><code class="swift">var currentUser = RTUser.currentUser()
 if currentUser != nil {
   // Do stuff with the user
 } else {
@@ -130,12 +131,13 @@ if currentUser != nil {
 
 You can clear the current user by logging them out:
 
-<pre><code class="objectivec">
-[RTUser logOut];
+### Objective - C
+<pre><code class="objectivec">[RTUser logOut];
 RTUser *currentUser = [RTUser currentUser]; // this will now be nil
 </code></pre>
-<pre><code class="swift">
-RTUser.logOut()
+
+### Swift
+<pre><code class="swift">RTUser.logOut()
 var currentUser = RTUser.currentUser() // this will now be nil
 </code></pre>
 
@@ -147,8 +149,8 @@ An anonymous user is a user that can be created without a username and password 
 
 You can create an anonymous user using `RTAnonymousUtils`:
 
-<pre><code class="objectivec">
-[RTAnonymousUtils logInWithBlock:^(RTUser *user, NSError *error) {
+### Objective - C
+<pre><code class="objectivec">[RTAnonymousUtils logInWithBlock:^(RTUser *user, NSError *error) {
     if (error) {
       NSLog(@"Anonymous login failed.");
     } else {
@@ -156,8 +158,9 @@ You can create an anonymous user using `RTAnonymousUtils`:
     }
 }];
 </code></pre>
-<pre><code class="swift">
-RTAnonymousUtils.logInWithBlock {
+
+### Swift
+<pre><code class="swift">RTAnonymousUtils.logInWithBlock {
   (user: RTUser?, error: NSError?) -> Void in
   if error != nil || user == nil {
     print("Anonymous login failed.")
@@ -169,15 +172,16 @@ RTAnonymousUtils.logInWithBlock {
 
 You can convert an anonymous user into a regular user by setting the username and password, then calling `signUp`, or by logging in or linking with a service like [Facebook](#fbusers) or [Twitter](#twitterusers). The converted user will retain all of its data.  To determine whether the current user is an anonymous user, you can check `RTAnonymousUtils isLinkedWithUser`:
 
-<pre><code class="objectivec">
-if ([RTAnonymousUtils isLinkedWithUser:[RTUser currentUser]]) {
+### Objective - C
+<pre><code class="objectivec">if ([RTAnonymousUtils isLinkedWithUser:[RTUser currentUser]]) {
     [self enableSignUpButton];
 } else {
     [self enableLogOutButton];
 }
 </code></pre>
-<pre><code class="swift">
-if RTAnonymousUtils.isLinkedWithUser(RTUser.currentUser()) {
+
+### Swift
+<pre><code class="swift">if RTAnonymousUtils.isLinkedWithUser(RTUser.currentUser()) {
   self.enableSignUpButton()
 } else {
   self.enableLogOutButton()
@@ -186,11 +190,14 @@ if RTAnonymousUtils.isLinkedWithUser(RTUser.currentUser()) {
 
 Anonymous users can also be automatically created for you without requiring a network request, so that you can begin working with your user immediately when your application starts.  When you enable automatic anonymous user creation at application startup, `[RTUser currentUser]` will never be `nil`. The user will automatically be created in the cloud the first time the user or any object with a relation to the user is saved.  Until that point, the user's object ID will be `nil`.  Enabling automatic user creation makes associating data with your users painless.  For example, in your `application:didFinishLaunchingWithOptions:` function, you might write:
 
+### Objective - C
 <pre><code class="objectivec">
 [RTUser enableAutomaticUser];
 [[RTUser currentUser] incrementKey:@"RunCount"];
 [[RTUser currentUser] saveInBackground];
 </code></pre>
+
+### Swift
 <pre><code class="swift">
 RTUser.enableAutomaticUser()
 RTUser.currentUser().incrementKey("RunCount")
@@ -201,6 +208,7 @@ RTUser.currentUser().saveInBackground()
 
 If you’ve created your own authentication routines, or otherwise logged in a user on the server side, you can now pass the session token to the client and use the `become` method. This method will ensure the session token is valid before setting the current user.
 
+### Objective - C
 <pre><code class="objectivec">
 [RTUser becomeInBackground:@"session-token-here" block:^(RTUser *user, NSError *error) {
   if (error) {
@@ -210,9 +218,10 @@ If you’ve created your own authentication routines, or otherwise logged in a u
   }
 }];
 </code></pre>
-<pre><code class="swift">
-RTUser.becomeInBackground("session-token-here", {
-  (user: RTUser?, error: NSError?) -> Void in
+
+### Swift
+<pre><code class="swift">RTUser.becomeInBackground("session-token-here", {
+  (user, error) in
   if error != nil {
     // The token could not be validated.
   } else {
@@ -229,8 +238,8 @@ Specifically, you are not able to invoke any of the `save` or `delete` methods u
 
 The following illustrates this security policy:
 
-<pre><code class="objectivec">
-RTUser *user = [RTUser logInWithUsername:@"my_username" password:@"my_password"];
+### Objective - C
+<pre><code class="objectivec">RTUser *user = [RTUser logInWithUsername:@"my_username" password:@"my_password"];
 user.username = "my_new_username"; // attempt to change username
 [user save]; // This succeeds, since the user was authenticated on the device
 
@@ -243,8 +252,9 @@ userAgain.username = "another_username";
 // This will throw an exception, since the RTUser is not authenticated
 [userAgain save];
 </code></pre>
-<pre><code class="swift">
-var user = RTUser.logInWithUsername("my_username", password:"my_password")
+
+### Swift
+<pre><code class="swift">var user = RTUser.logInWithUsername("my_username", password:"my_password")
 user.username = "my_new_username" // attempt to change username
 user.save() // This succeeds, since the user was authenticated on the device
 
@@ -264,18 +274,19 @@ If you need to check if a `RTUser` is authenticated, you can invoke the `isAuthe
 
 ## Security For Other Objects
 
-The same security model that applies to the `RTUser` can be applied to other objects. For any object, you can specify which users are allowed to read the object, and which users are allowed to modify an object. To support this type of security, each object has an [access control list](http://en.wikipedia.org/wiki/Access_control_list), implemented by the `RTACL` class.
+The same security model that applies to the `RTUser` can be applied to other objects. For any object, you can specify which users are allowed to read the object, and which users are allowed to modify an object. To support this type of security, each object has an access control list, implemented by the `RTACL` class.
 
 The simplest way to use a `RTACL` is to specify that an object may only be read or written by a single user. To create such an object, there must first be a logged in `RTUser`. Then, the `ACLWithUser` method generates a `RTACL` that limits access to that user. An object's ACL is updated when the object is saved, like any other property. Thus, to create a private note that can only be accessed by the current user:
 
-<pre><code class="objectivec">
-RTObject *privateNote = [RTObject objectWithClassName:@"Note"];
+### Objective - C
+<pre><code class="objectivec">RTObject *privateNote = [RTObject objectWithClassName:@"Note"];
 privateNote[@"content"] = @"This note is private!";
 privateNote.ACL = [RTACL ACLWithUser:[RTUser currentUser]];
 [privateNote saveInBackground];
 </code></pre>
-<pre><code class="swift">
-var privateNote = RTObject(className:"Note")
+
+### Swift
+<pre><code class="swift">var privateNote = RTObject(className:"Note")
 privateNote["content"] = "This note is private!"
 privateNote.ACL = RTACL.ACLWithUser(RTUser.currentUser())
 privateNote.saveInBackground()
@@ -285,8 +296,8 @@ This note will then only be accessible to the current user, although it will be 
 
 Permissions can also be granted on a per-user basis. You can add permissions individually to a `RTACL` using `setReadAccess:forUser:` and `setWriteAccess:forUser:`. For example, let's say you have a message that will be sent to a group of several users, where each of them have the rights to read and delete that message:
 
-<pre><code class="objectivec">
-RTObject *groupMessage = [RTObject objectWithClassName:@"Message"];
+### Objective - C
+<pre><code class="objectivec">RTObject *groupMessage = [RTObject objectWithClassName:@"Message"];
 RTACL *groupACL = [RTACL ACL];
 
 // userList is an NSArray with the users we are sending this message to.
@@ -298,8 +309,9 @@ for (RTUser *user in userList) {
 groupMessage.ACL = groupACL;
 [groupMessage saveInBackground];
 </code></pre>
-<pre><code class="swift">
-var groupMessage = RTObject(className:"Message")
+
+### Swift
+<pre><code class="swift">var groupMessage = RTObject(className:"Message")
 var groupACL = RTACL.ACL()
 
 // userList is an NSArray with the users we are sending this message to.
@@ -314,15 +326,16 @@ groupMessage.saveInBackground()
 
 You can also grant permissions to all users at once using `setPublicReadAccess:` and `setPublicWriteAccess:`. This allows patterns like posting comments on a message board. For example, to create a post that can only be edited by its author, but can be read by anyone:
 
-<pre><code class="objectivec">
-RTObject *publicPost = [RTObject objectWithClassName:@"Post"];
+### Objective - C
+<pre><code class="objectivec">RTObject *publicPost = [RTObject objectWithClassName:@"Post"];
 RTACL *postACL = [RTACL ACLWithUser:[RTUser currentUser]];
 [postACL setPublicReadAccess:YES];
 publicPost.ACL = postACL;
 [publicPost saveInBackground];
 </code></pre>
-<pre><code class="swift">
-var publicPost = RTObject(className:"Post")
+
+### Swift
+<pre><code class="swift">var publicPost = RTObject(className:"Post")
 var postACL = RTACL.ACLWithUser(RTUser.currentUser())
 postACL.setPublicReadAccess(true)
 publicPost.ACL = postACL
@@ -331,24 +344,26 @@ publicPost.saveInBackground()
 
 To help ensure that your users' data is secure by default, you can set a default ACL to be applied to all newly-created `RTObjects`:
 
-<pre><code class="objectivec">
-[RTACL setDefaultACL:defaultACL withAccessForCurrentUser:YES];
+### Objective - C
+<pre><code class="objectivec">[RTACL setDefaultACL:defaultACL withAccessForCurrentUser:YES];
 </code></pre>
-<pre><code class="swift">
-RTACL.setDefaultACL(defaultACL, withAccessForCurrentUser:true)
+
+### Swift
+<pre><code class="swift">RTACL.setDefaultACL(defaultACL, withAccessForCurrentUser:true)
 </code></pre>
 
 In the code above, the second parameter to setDefaultACL tells Rooftop to ensure that the default ACL assigned at the time of object creation allows read and write access to the current user at that time.  Without this setting, you would need to reset the defaultACL every time a user logs in or out so that the current user would be granted access appropriately.  With this setting, you can ignore changes to the current user until you explicitly need to grant different kinds of access.
 
 Default ACLs make it easy to create apps that follow common access patterns. An application like Twitter, for example, where user content is generally visible to the world, might set a default ACL such as:
 
-<pre><code class="objectivec">
-RTACL *defaultACL = [RTACL ACL];
+### Objective - C
+<pre><code class="objectivec">RTACL *defaultACL = [RTACL ACL];
 [defaultACL setPublicReadAccess:YES];
 [RTACL setDefaultACL:defaultACL withAccessForCurrentUser:YES];
 </code></pre>
-<pre><code class="swift">
-var defaultACL = RTACL.ACL()
+
+### Swift
+<pre><code class="swift">var defaultACL = RTACL.ACL()
 defaultACL.setPublicReadAccess(true)
 RTACL.setDefaultACL(defaultACL, withAccessForCurrentUser:true)
 </code></pre>
@@ -379,9 +394,11 @@ It's a fact that as soon as you introduce passwords into a system, users will fo
 
 To kick off the password reset flow, ask the user for their email address, and call:
 
-<pre><code class="objectivec">
-[RTUser requestPasswordResetForEmailInBackground:@"email@example.com"];
+### Objective - C
+<pre><code class="objectivec">[RTUser requestPasswordResetForEmailInBackground:@"email@example.com"];
 </code></pre>
+
+### Swift
 <pre><code class="swift">
 RTUser.requestPasswordResetForEmailInBackground("email@example.com")
 </code></pre>
@@ -401,13 +418,14 @@ Note that the messaging in this flow will reference your app by the name that yo
 
 To query for users, you need to use the special user query:
 
-<pre><code class="objectivec">
-RTQuery *query = [RTUser query];
+### Objective - C
+<pre><code class="objectivec">RTQuery *query = [RTUser query];
 [query whereKey:@"gender" equalTo:@"female"]; // find all the women
 NSArray *girls = [query findObjects];
 </code></pre>
-<pre><code class="swift">
-var query = RTUser.query()
+
+### Swift
+<pre><code class="swift">var query = RTUser.query()
 query.whereKey("gender", equalTo:"female")
 var girls = query.findObjects()
 </code></pre>
@@ -418,8 +436,8 @@ In addition, you can use `getUserObjectWithId:objectId` to get a `RTUser` by id.
 
 Associations involving a `RTUser` work right out of the box. For example, let's say you're making a blogging app. To store a new post for a user and retrieve all their posts:
 
-<pre><code class="objectivec">
-RTUser *user = [RTUser currentUser];
+### Objective - C
+<pre><code class="objectivec">RTUser *user = [RTUser currentUser];
 
 // Make a new post
 RTObject *post = [RTObject objectWithClassName:@"Post"];
@@ -433,8 +451,9 @@ RTQuery *query = [RTQuery queryWithClassName:@"Post"];
 [query whereKey:@"user" equalTo:user];
 NSArray *usersPosts = [query findObjects];
 </code></pre>
-<pre><code class="swift">
-var user = RTUser.currentUser()
+
+### Swift
+<pre><code class="swift">var user = RTUser.currentUser()
 
 // Make a new post
 var post = RTObject(className:"Post")
@@ -442,437 +461,4 @@ post["title"] = "My New Post"
 post["body"] = "This is some great content."
 post["user"] = user
 post.save()
-</code></pre>
-
-## Facebook Users
-
-Rooftop provides an easy way to integrate Facebook with your application. The Facebook SDK can be used with our SDK, and is integrated with the `RTUser` class to make linking your users to their Facebook identities easy.
-
-Using our Facebook integration, you can associate an authenticated Facebook user with a `RTUser`. With just a few lines of code, you'll be able to provide a "log in with Facebook" option in your app, and be able to save the user's data to Rooftop.
-
-**Note:** Rooftop SDK is compatible both with Facebook SDK 3.x and 4.x for iOS. These instructions are for Facebook SDK 4.x.
-
-### Setup
-
-To start using Facebook with Rooftop, you need to:
-
-1.  [Set up a Facebook app](https://developers.facebook.com/apps), if you haven't already.
-2.  Add your application's Facebook Application ID on your Rooftop application's settings page.
-3.  Follow Facebook's instructions for [getting started with the Facebook SDK](https://developers.facebook.com/docs/ios/getting-started) to create an app linked to the Facebook SDK. Double-check that you have added FacebookAppID and URL Scheme values to your application's .plist file.
-4.  Download and unzip [Rooftop iOS SDK](/downloads/ios/Rooftop-library/latest), if you haven't already.
-5.  Add `RooftopFacebookUtils.framework` to your Xcode project, by dragging it into your project folder target.
-
-There's also two code changes you'll need to make. First, add the following to your `application:didFinishLaunchingWithOptions:` method, after you've initialized the Rooftop SDK.
-
-<pre><code class="objectivec">
-// AppDelegate.m
-#import <FBSDKCoreKit/FBSDKCoreKit.h>
-#import <RooftopFacebookUtilsV4/RTFacebookUtils.h>
-
-@implementation AppDelegate
-
-- (void)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {
-  [Rooftop setApplicationId:@"RooftopAppId" clientKey:@"RooftopClientKey"];
-  [RTFacebookUtils initializeFacebookWithApplicationLaunchOptions:launchOptions];
-}
-
-</code></pre>
-<pre><code class="swift">
-import FBSDKCoreKit
-import RooftopFacebookUtilsV4
-
-// AppDelegate.swift
-func application(application: UIApplication, didFinishLaunchingWithOptions launchOptions: [NSObject: AnyObject]?) -> Bool {
-  Rooftop.setApplicationId("RooftopAppId", clientKey:"RooftopClientKey")
-  RTFacebookUtils.initializeFacebookWithApplicationLaunchOptions(launchOptions)
-}
-</code></pre>
-
-Next, add the following handlers in your app delegate.
-
-<pre><code class="objectivec">
-- (BOOL)application:(UIApplication *)application
-            openURL:(NSURL *)url
-  sourceApplication:(NSString *)sourceApplication
-         annotation:(id)annotation {
-  return [[FBSDKApplicationDelegate sharedInstance] application:application
-                                                        openURL:url
-                                              sourceApplication:sourceApplication
-                                                     annotation:annotation];
-}
-
-- (void)applicationDidBecomeActive:(UIApplication *)application {
-  [FBSDKAppEvents activateApp];
-}
-</code></pre>
-
-<pre><code class="swift">
-func application(application: UIApplication,
-                 openURL url: NSURL,
-                 sourceApplication: String?,
-                 annotation: AnyObject?) -> Bool {
-  return FBSDKApplicationDelegate.sharedInstance().application(application,
-                                                             openURL: url,
-                                                             sourceApplication: sourceApplication,
-                                                             annotation: annotation)
-}
-
-//Make sure it isn't already declared in the app delegate (possible redefinition of func error)
-func applicationDidBecomeActive(application: UIApplication) {
-  FBSDKAppEvents.activateApp()
-}
-</code></pre>
-
-There are two main ways to use Facebook with your Rooftop users: (1) to log in (or sign up) as a Facebook user and creating a `RTUser`, or (2) linking Facebook to an existing `RTUser`.
-
-<div class='tip info'><div>
-  It is up to you to record any data that you need from the Facebook user after they authenticate. To accomplish this, you'll need to do a graph query using the Facebook SDK.
-</div></div>
-
-### Log In & Sign Up
-
-`RTUser` provides a way to allow your users to log in or sign up through Facebook. This is done by using the `logInInBackgroundWithReadPermissions` method like so:
-
-<pre><code class="objectivec">
-[RTFacebookUtils logInInBackgroundWithReadPermissions:permissions block:^(RTUser *user, NSError *error) {
-  if (!user) {
-    NSLog(@"Uh oh. The user cancelled the Facebook login.");
-  } else if (user.isNew) {
-    NSLog(@"User signed up and logged in through Facebook!");
-  } else {
-    NSLog(@"User logged in through Facebook!");
-  }
-}];
-</code></pre>
-<pre><code class="swift">
-RTFacebookUtils.logInInBackgroundWithReadPermissions(permissions) {
-  (user: RTUser?, error: NSError?) -> Void in
-  if let user = user {
-    if user.isNew {
-      print("User signed up and logged in through Facebook!")
-    } else {
-      print("User logged in through Facebook!")
-    }
-  } else {
-    print("Uh oh. The user cancelled the Facebook login.")
-  }
-}
-</code></pre>
-
-When this code is run, the following happens:
-
-1.  The user is shown the Facebook login dialog.
-2.  The user authenticates via Facebook, and your app receives a callback using `handleOpenURL`.
-3.  Our SDK receives the user's Facebook access data and saves it to a `RTUser`. If no `RTUser` exists with the same Facebook ID, then a new `RTUser` is created.
-4.  Your code block is called with the user.
-5.  The current user reference will be updated to this user.
-
-The permissions argument is an array of strings that specifies what permissions your app requires from the Facebook user. These permissions must only include read permissions. The `RTUser` integration doesn't require any permissions to work out of the box. [Read more permissions on Facebook's developer guide.](https://developers.facebook.com/docs/reference/api/permissions/)
-
-To acquire publishing permissions for a user so that your app can, for example, post status updates on their behalf, you must call `[RTFacebookUtils logInInBackgroundWithPublishPermissions:]`:
-
-<pre><code class="objectivec">
-[RTFacebookUtils logInInBackgroundWithPublishPermissions:@[ @"publish_actions" ] block:^(RTUser *user, NSError *error) {
-  if (!user) {
-    NSLog(@"Uh oh. The user cancelled the Facebook login.");
-  } else {
-    NSLog(@"User now has publish permissions!");
-  }
-}];
-</code></pre>
-<pre><code class="swift">
-RTFacebookUtils.logInInBackgroundWithPublishPermissions(["publish_actions"], {
-  (user: RTUser?, error: NSError?) -> Void in
-  if user != nil {
-    // Your app now has publishing permissions for the user
-  }
-})
-</code></pre>
-
-### Linking
-
-If you want to associate an existing `RTUser` to a Facebook account, you can link it like so:
-
-<pre><code class="objectivec">
-if (![RTFacebookUtils isLinkedWithUser:user]) {
-  [RTFacebookUtils linkUserInBackground:user withReadPermissions:nil block:^(BOOL succeeded, NSError *error) {
-    if (succeeded) {
-      NSLog(@"Woohoo, user is linked with Facebook!");
-    }
-  }];
-}
-</code></pre>
-<pre><code class="swift">
-if !RTFacebookUtils.isLinkedWithUser(user) {
-  RTFacebookUtils.linkUserInBackground(user, withReadPermissions: nil, {
-    (succeeded: Bool?, error: NSError?) -> Void in
-    if succeeded {
-      print("Woohoo, the user is linked with Facebook!")
-    }
-  })
-}
-</code></pre>
-
-The steps that happen when linking are very similar to log in. The difference is that on successful login, the existing `RTUser` is updated with the Facebook information. Future logins via Facebook will now log in the user to their existing account.
-
-If you want to unlink Facebook from a user, simply do this:
-
-<pre><code class="objectivec">
-[RTFacebookUtils unlinkUserInBackground:user block:^(BOOL succeeded, NSError *error) {
-  if (succeeded) {
-    NSLog(@"The user is no longer associated with their Facebook account.");
-  }
-}];
-</code></pre>
-<pre><code class="swift">
-RTFacebookUtils.unlinkUserInBackground(user, {
-  (succeeded: Bool?, error: NSError?) -> Void in
-  if succeeded {
-    print("The user is no longer associated with their Facebook account.")
-  }
-})
-</code></pre>
-
-### Log In / Link via Token
-
-In the previous sections, you've seen how `RTFacebookUtils` can be used to log in with the Facebook SDK and create a `RTUser` or link with existing ones. If you have already integrated the Facebook SDK and have a `FBSDKAccessToken`, there is an option to directly log in or link the users like this:
-
-<pre><code class="objectivec">
-FBSDKAccessToken *accessToken = ...; // Use existing access token.
-
-// Log In (create/update currentUser) with FBSDKAccessToken
-[RTFacebookUtils logInInBackgroundWithAccessToken:accessToken
-                                            block:^(RTUser *user, NSError *error) {
-  if (!user) {
-    NSLog(@"Uh oh. There was an error logging in.");
-  } else {
-    NSLog(@"User logged in through Facebook!");
-  }
-}];
-
-//
-// or
-//
-
-// Link RTUser with FBSDKAccessToken
-[RTFacebookUtils linkUserInBackground:user
-                      withAccessToken:accessToken
-                                block:^(BOOL succeeded, NSError *error) {
-  if (succeeded) {
-    NSLog(@"Woohoo, the user is linked with Facebook!");
-  }
-}];
-</code></pre>
-<pre><code class="swift">
-let accessToken: FBSDKAccessToken = ...; // Use existing access token.
-
-// Log In (create/update currentUser) with FBSDKAccessToken
-RTFacebookUtils.logInInBackgroundWithAccessToken(accessToken, {
-  (user: RTUser?, error: NSError?) -> Void in
-  if user != nil {
-    print("User logged in through Facebook!")
-  } else {
-    print("Uh oh. There was an error logging in.")
-  }
-})
-
-//
-// or
-//
-
-// Link RTUser with FBSDKAccessToken
-RTFacebookUtils.linkUserInBackground(user, withAccessToken: accessToken, {
-  (succeeded: Bool?, error: NSError?) -> Void in
-  if succeeded {
-    print("Woohoo, the user is linked with Facebook!")
-  }
-})
-</code></pre>
-
-### Additional Permissions
-
-Since Facebook SDK v4.0 - it is required to request **read** and **publish** permissions separately. With Rooftop SDK integration you can do that by logging in with read permissions first, and later, when the user wants to post to Facebook - linking a user with new set of publish permissions. This also works the other way around: logging in with publish permissions and linking with additional read permissions.
-
-<pre><code class="objectivec">
-// Log In with Read Permissions
-[RTFacebookUtils logInInBackgroundWithReadPermissions:permissions block:^(RTUser *user, NSError *error) {
-  if (!user) {
-    NSLog(@"Uh oh. The user cancelled the Facebook login.");
-  } else if (user.isNew) {
-    NSLog(@"User signed up and logged in through Facebook!");
-  } else {
-    NSLog(@"User logged in through Facebook!");
-  }
-}];
-
-// Request new Publish Permissions
-[RTFacebookUtils linkUserInBackground:[RTUser currentUser]
-                withPublishPermissions:@[ @"publish_actions"]
-                                block:^(BOOL succeeded, NSError *error) {
-  if (succeeded) {
-    NSLog(@"User now has read and publish permissions!");
-  }
-}];
-</code></pre>
-<pre><code class="swift">
-// Log In with Read Permissions
-RTFacebookUtils.logInInBackgroundWithReadPermissions(permissions, {
-  (user: RTUser?, error: NSError?) -> Void in
-  if let user = user {
-    if user.isNew {
-      print("User signed up and logged in through Facebook!")
-    } else {
-      print("User logged in through Facebook!")
-    }
-  } else {
-    print("Uh oh. The user cancelled the Facebook login.")
-  }
-})
-
-// Request new Publish Permissions
-RTFacebookUtils.linkUserInBackground(user, withPublishPermissions: ["publish_actions"], {
-  (succeeded: Bool?, error: NSError?) -> Void in
-  if succeeded {
-    print("User now has read and publish permissions!")
-  }
-})
-</code></pre>
-
-### Facebook SDK and Rooftop
-
-The Facebook iOS SDK provides a number of helper classes for interacting with Facebook's API. Generally, you will use the `FBSDKGraphRequest` class to interact with Facebook on behalf of your logged-in user. [You can read more about the Facebook SDK here](https://developers.facebook.com/docs/reference/ios/current).
-
-To access the user's Facebook access token, you can simply call `[FBSDKAccessToken currentAccessToken]` to access the `FBSDKAccessToken` instance, which can be passed to `FBSDKGraphRequest`s.</p>
-
-## Twitter Users
-
-As with Facebook, Rooftop also provides an easy way to integrate Twitter authentication into your application. The Rooftop SDK provides a straightforward way to authorize and link a Twitter account to your `RTUser`s. With just a few lines of code, you'll be able to provide a "log in with Twitter" option in your app, and be able to save their data to Rooftop.
-
-### Setup
-
-To start using Twitter with Rooftop, you need to:
-
-1.  [Set up a Twitter app](https://dev.twitter.com/apps), if you haven't already.
-2.  Add your application's Twitter consumer key on your Rooftop application's settings page.
-3.  When asked to specify a "Callback URL" for your Twitter app, please insert a valid URL. This value will not be used by your iOS or Android application, but is necessary in order to enable authentication through Twitter.
-4.  Add the `Accounts.framework` and `Social.framework` libraries to your Xcode project.
-5.  Add the following where you initialize the Rooftop SDK, such as in `application:didFinishLaunchingWithOptions:`.
-<pre><code class="objectivec">
-[RTTwitterUtils initializeWithConsumerKey:@"YOUR CONSUMER KEY"
-                           consumerSecret:@"YOUR CONSUMER SECRET"];
-</code></pre>
-<pre><code class="swift">
-RTTwitterUtils.initializeWithConsumerKey("YOUR CONSUMER KEY",  consumerSecret:"YOUR CONSUMER SECRET")
-</code></pre>
-
-If you encounter any issues that are Twitter-related, a good resource is the [official Twitter documentation](https://dev.twitter.com/docs).
-
-There are two main ways to use Twitter with your Rooftop users: (1) logging in as a Twitter user and creating a `RTUser`, or (2) linking Twitter to an existing `RTUser`.
-
-### Login & Signup
-
-`RTTwitterUtils` provides a way to allow your `RTUser`s to log in or sign up through Twitter. This is accomplished using the `logInWithBlock` or `logInWithTarget` messages:
-
-<pre><code class="objectivec">
-[RTTwitterUtils logInWithBlock:^(RTUser *user, NSError *error) {
-    if (!user) {
-      NSLog(@"Uh oh. The user cancelled the Twitter login.");
-      return;
-    } else if (user.isNew) {
-      NSLog(@"User signed up and logged in with Twitter!");
-    } else {
-      NSLog(@"User logged in with Twitter!");
-    }
-}];
-</code></pre>
-<pre><code class="swift">
-RTTwitterUtils.logInWithBlock {
-  (user: RTUser?, error: NSError?) -> Void in
-  if let user = user {
-    if user.isNew {
-      print("User signed up and logged in with Twitter!")
-    } else {
-      print("User logged in with Twitter!")
-    }
-  } else {
-    print("Uh oh. The user cancelled the Twitter login.")
-  }
-}
-</code></pre>
-
-When this code is run, the following happens:
-
-1.  The user is shown the Twitter login dialog.
-2.  The user authenticates via Twitter, and your app receives a callback.
-3.  Our SDK receives the Twitter data and saves it to a `RTUser`. If it's a new user based on the Twitter handle, then that user is created.
-4.  Your `block` is called with the user.
-
-### Twitter Linking
-
-If you want to associate an existing `RTUser` with a Twitter account, you can link it like so:
-
-<pre><code class="objectivec">
-if (![RTTwitterUtils isLinkedWithUser:user]) {
-    [RTTwitterUtils linkUser:user block:^(BOOL succeeded, NSError *error) {
-        if ([RTTwitterUtils isLinkedWithUser:user]) {
-          NSLog(@"Woohoo, user logged in with Twitter!");
-        }
-    }];
-}
-</code></pre>
-<pre><code class="swift">
-if !RTTwitterUtils.isLinkedWithUser(user) {
-  RTTwitterUtils.linkUser(user, {
-    (succeeded: Bool?, error: NSError?) -> Void in
-    if RTTwitterUtils.isLinkedWithUser(user) {
-      print("Woohoo, user logged in with Twitter!")
-    }
-  })
-}
-</code></pre>
-
-The steps that happen when linking are very similar to log in. The difference is that on successful login, the existing `RTUser` is updated with the Twitter information. Future logins via Twitter will now log the user into their existing account.
-
-If you want to unlink Twitter from a user, simply do this:
-
-<pre><code class="objectivec">
-[RTTwitterUtils unlinkUserInBackground:user block:^(BOOL succeeded, NSError *error) {
-    if (!error && succeeded) {
-      NSLog(@"The user is no longer associated with their Twitter account.");
-    }
-}];
-</code></pre>
-<pre><code class="swift">
-RTTwitterUtils.unlinkUserInBackground(user, {
-  (succeeded: Bool?, error: NSError?) -> Void in
-  if error == nil && succeeded {
-    print("The user is no longer associated with their Twitter account.")
-  }
-})
-</code></pre>
-
-### Twitter API Calls
-
-Our SDK provides a straightforward way to sign your API HTTP requests to the [Twitter REST API](https://dev.twitter.com/docs/api) when your app has a Twitter-linked `RTUser`.  To make a request through our API, you can use the `RT_Twitter` singleton provided by `RTTwitterUtils`:
-
-<pre><code class="objectivec">
-NSURL *verify = [NSURL URLWithString:@"https://api.twitter.com/1.1/account/verify_credentials.json"];
-NSMutableURLRequest *request = [NSMutableURLRequest requestWithURL:verify];
-[[RTTwitterUtils twitter] signRequest:request];
-NSURLSessionDataTask *task = [[NSURLSession sharedSession] dataTaskWithRequest:request
-                                                             completionHandler:^(NSData *data, NSURLResponse *response, NSError *error) {
-  // Check for error
-  // Data will contain the response data
-}];
-[task resume];
-</code></pre>
-<pre><code class="swift">
-let verify = NSURL(string: "https://api.twitter.com/1.1/account/verify_credentials.json")
-var request = NSMutableURLRequest(URL: verify!)
-RTTwitterUtils.twitter()!.signRequest(request)
-let task = NSURLSession.sharedSession().dataTaskWithRequest(request) { data, response, error in
-  // Check for error
-  // Data will contain the response data
-}
-task.resume()
 </code></pre>

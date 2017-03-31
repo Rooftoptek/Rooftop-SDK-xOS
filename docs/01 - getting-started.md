@@ -1,6 +1,18 @@
-# Installation
+## Getting Started
 
-Add next line `pod 'Rooftop', :git => 'https://github.com/Rooftoptek/Rooftop-SDK-xOS.git', :tag => '0.5.0'` to your podfile and run `pod install`.
+The prefered way to install the library is to use Cocoapods
+
+- **[CocoaPods](https://cocoapods.org)**
+
+Open your project folder in `Terminal` and run `pod init` command. After that you will have a new `Podfile` file in your project folder.
+
+Add the following line to your Podfile:
+
+```
+pod 'Rooftop', :git => 'https://github.com/Rooftoptek/Rooftop-SDK-xOS.git', :tag => '0.5.0'
+```
+Run `pod install`, and you should now have the latest Rooftop release.
+
 
 # Connect your app to Rooftop Server
 
