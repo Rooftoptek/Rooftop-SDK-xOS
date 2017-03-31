@@ -24,6 +24,26 @@ Let's say you want to save the `GameScore` described above to the Rooftop Cloud 
 gameScore[@"score"] = @1337;
 gameScore[@"playerName"] = @"Sean Plott";
 gameScore[@"cheatMode"] = @NO;
+
+// Create variable with access flags
+RTACLAccessType accessType = RTACLAccessTypeRead | RTACLAccessTypeUpdate | RTACLAccessTypeDelete;
+
+// Create ACL object
+RTACL *acl = [RTACL ACL];
+
+// Set public access for provided access types
+[acl setPublicAccess:accessType];
+
+// Or specify it for RTUser object
+[acl setAccess:accessType forUser:[RTUser currentUser]];
+
+// Or if you know an user id
+[acl setAccess:accessType forUserId:@"UserId"];
+
+
+// Assign created ACL object to ACL property of object
+gameScore.ACL = acl;
+
 [gameScore saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
   if (succeeded) {
     // The object has been saved.
@@ -38,6 +58,23 @@ gameScore[@"cheatMode"] = @NO;
 gameScore["score"] = 1337
 gameScore["playerName"] = "Sean Plott"
 gameScore["cheatMode"] = false
+
+// Create variable with access flags
+let accessType = RTACLAccessTypeRead.rawValue | RTACLAccessTypeUpdate.rawValue | RTACLAccessTypeDelete.rawValue
+
+// Create ACL object
+let acl = RTACL()
+
+// Set public access for provided access types
+acl.setPublicAccess(RTACLAccessType(rawValue: accessType))
+// Or specify it for RTUser object
+acl.setAccess(RTACLAccessType(rawValue: accessType), for: RTUser.current()!)
+// Or if you know an user id
+acl.setAccess(RTACLAccessType(rawValue: accessType), forUserId: "UserId")
+
+// Assign created ACL object to ACL property of object
+gameScore.acl = acl
+
 gameScore.saveInBackground { (success, error) in
 	if success {
 		// The object has been saved.
